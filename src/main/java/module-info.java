@@ -4,4 +4,6 @@ module com.mycompany.tictactoeserver {
 
     opens com.mycompany.tictactoeserver to javafx.fxml;
     exports com.mycompany.tictactoeserver;
+    exports com.mycompany.tictactoeserver.presentation;
+    opens com.mycompany.tictactoeserver.presentation to javafx.fxml;
 }
