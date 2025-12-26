@@ -1,53 +1,29 @@
-# =========================
-# Java / JavaFX
-# =========================
+
 *.class
 *.log
 
-# Compiled output
 /target/
 /out/
 /build/
 
-# JavaFX runtime artifacts (if any)
 *.jar
 *.jmod
-
-# =========================
-# IntelliJ IDEA
-# =========================
 .idea/
 *.iml
 *.ipr
 *.iws
 
-# IntelliJ build output
-/out/
-
-# =========================
-# OS-specific
-# =========================
-# macOS
 .DS_Store
 
 # Windows
 Thumbs.db
 desktop.ini
 
-# =========================
-# Gradle
-# =========================
 .gradle/
 !gradle-wrapper.jar
 
-# =========================
-# Maven
-# =========================
 target/
 
-# =========================
-# Logs & temp files
-# =========================
 *.tmp
 *.bak
 *.swp
