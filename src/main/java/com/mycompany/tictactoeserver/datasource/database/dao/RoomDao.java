@@ -26,10 +26,9 @@ public class RoomDao {
     }
 
     public void createRoom(Room room) throws RoomCreationException {
-String sql = """
-        INSERT INTO ROOM (id, first_player_id, second_player_id, status, created_at)
-        VALUES (?, ?, ?, ?, ?)
-        """;
+String sql =
+    "INSERT INTO ROOM (id, first_player_id, second_player_id, status, created_at) " +
+    "VALUES (?, ?, ?, ?, ?)";
         try (PreparedStatement roomCreationStatement = connection.prepareStatement(sql)) {
             roomCreationStatement.setString(1, room.getId());
             roomCreationStatement.setString(2, room.getFirstPlayerId());
