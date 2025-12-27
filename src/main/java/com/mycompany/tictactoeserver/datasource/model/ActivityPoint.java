@@ -2,18 +2,16 @@ package com.mycompany.tictactoeserver.datasource.model;
 
 
 import java.time.LocalDateTime;
-
-public class Activity {
-
+public class ActivityPoint {
     private String playerId;
     private LocalDateTime startTime;
     private LocalDateTime endTime;
 
-    public Activity() {
+    public ActivityPoint() {
         this.startTime = LocalDateTime.now();
     }
 
-    public Activity(String playerId) {
+    public ActivityPoint(String playerId) {
          this.startTime = LocalDateTime.now();
         this.playerId = playerId;
     }
@@ -42,3 +40,5 @@ public class Activity {
         this.endTime = endTime;
     }
 }
+
+

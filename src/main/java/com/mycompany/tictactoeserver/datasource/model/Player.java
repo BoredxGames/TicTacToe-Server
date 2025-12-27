@@ -21,6 +21,12 @@ public class Player {
         this.password = password;
         this.score = 0;
     }
+    public Player(String username, String password, int score) {
+        this.id = UUID.randomUUID().toString();
+        this.username = username;
+        this.password = password;
+        this.score = score;
+    }
 
 
 
