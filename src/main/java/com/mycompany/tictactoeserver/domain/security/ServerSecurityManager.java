@@ -33,7 +33,7 @@ public class ServerSecurityManager {
             
             return encryptedText;
         } catch (NoSuchAlgorithmException ex) {
-           throw new  HashingException ();
+           throw new  HashingException(ex.getStackTrace());
         }
     }
     

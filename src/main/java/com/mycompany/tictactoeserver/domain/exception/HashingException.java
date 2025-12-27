@@ -12,8 +12,9 @@ import java.security.NoSuchAlgorithmException;
  */
 public class HashingException extends NoSuchAlgorithmException{
 
-    public HashingException() {
+    public HashingException(StackTraceElement[] stackTrace) {
         super("hashing-exception");
+        super.setStackTrace(stackTrace);
     }
     
     
