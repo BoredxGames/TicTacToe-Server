@@ -33,8 +33,7 @@ public class Player {
     public String getId() {
         return id;
     }
-
-    
+ 
     public String getUsername() {
         return username;
     }
