@@ -1,8 +1,9 @@
 module com.mycompany.tictactoeserver {
     requires javafx.controls;
     requires javafx.fxml;
-    requires jdk.jsobject;
     requires org.json;
+    requires java.sql;
+    requires derbyclient;
 
     opens com.mycompany.tictactoeserver to javafx.fxml;
     exports com.mycompany.tictactoeserver;

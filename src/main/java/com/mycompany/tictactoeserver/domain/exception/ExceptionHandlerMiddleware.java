@@ -17,6 +17,7 @@ public class ExceptionHandlerMiddleware {
     }
 
 
+
     public void handleException(Exception ex) {
         switch (ex.getMessage()) {
             case "start-server-exception":
@@ -24,12 +25,15 @@ public class ExceptionHandlerMiddleware {
             case "player-connection-exception":
             case "player-receive-message-exception":
             case "player-send-message-exception":
-
+            case "database-connection-exception":
+            case "database-dis-connection-exception":
+            case "hashing-exception":
             default:
 
         }
         logError(ex.getMessage(), ex.getStackTrace());
     }
+
 
 
     private void logError(String message, StackTraceElement[] stackTrace){
