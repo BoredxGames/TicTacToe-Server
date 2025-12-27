@@ -17,7 +17,11 @@ public class ExceptionHandlerMiddleware {
 
     public void handleException(Exception ex) {
         switch (ex.getMessage()) {
-            // case "error-name":
+            // case "error-name
+            case "database-connection-exception":
+                break;
+            case "database-dis-connection-exception":
+                break;
         }
     }
 

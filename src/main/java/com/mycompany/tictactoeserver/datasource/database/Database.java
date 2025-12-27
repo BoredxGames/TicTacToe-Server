@@ -1,5 +1,7 @@
 package com.mycompany.tictactoeserver.datasource.database;
 
+import com.mycompany.tictactoeserver.domain.exception.DatabaeDisConnectionException;
+import com.mycompany.tictactoeserver.domain.exception.DatabaseConnectionException;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
@@ -22,7 +24,7 @@ public class Database {
         return instance;
     }
 
-    public void connect() {
+    public void connect() throws DatabaseConnectionException{
         if (connection != null) {
             return;
         }
@@ -34,17 +36,17 @@ public class Database {
                     DatabaseConfig.PASSWORD
             );
         } catch (SQLException e) {
-            e.printStackTrace();
+            throw new DatabaseConnectionException(e.getStackTrace());
         }
     }
 
-    public void disconnect() {
+    public void disconnect() throws DatabaeDisConnectionException{
         try {
             if (connection != null && !connection.isClosed()) {
                 connection.close();
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+           throw new DatabaeDisConnectionException(e.getStackTrace());
         } finally {
             connection = null;
         }
