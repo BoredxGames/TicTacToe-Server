@@ -1,5 +1,6 @@
 package com.mycompany.tictactoeserver;
 
+import com.mycompany.tictactoeserver.domain.security.ExceptionHandlerMiddleware;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -35,7 +36,15 @@ public class App extends Application {
     }
 
     public static void main(String[] args) {
+
+        Thread.setDefaultUncaughtExceptionHandler((thread, throwable) -> {
+            if (throwable instanceof Exception) {
+                ExceptionHandlerMiddleware.getInstance().handleException((Exception) throwable);
+            } else {
+                throwable.printStackTrace();
+            }
+        });
+
         launch();
     }
-
 }
