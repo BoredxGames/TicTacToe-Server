@@ -26,10 +26,10 @@ public class RoomDao {
     }
 
     public void createRoom(Room room) throws RoomCreationException {
-String sql =
+String sqlCreation =
     "INSERT INTO ROOM (id, first_player_id, second_player_id, status, created_at) " +
     "VALUES (?, ?, ?, ?, ?)";
-        try (PreparedStatement roomCreationStatement = connection.prepareStatement(sql)) {
+        try (PreparedStatement roomCreationStatement = connection.prepareStatement(sqlCreation)) {
             roomCreationStatement.setString(1, room.getId());
             roomCreationStatement.setString(2, room.getFirstPlayerId());
             roomCreationStatement.setString(3, room.getSecondPlayerId());
@@ -40,6 +40,27 @@ String sql =
             throw new RoomCreationException(ex.getStackTrace());
         }
     }
+    
+        public void createRoomOnePlayer(Room room) throws RoomCreationException {
+
+    String sqlCreation =
+        "INSERT INTO ROOM (id, first_player_id, status, created_at) VALUES (?, ?, ?, ?)";
+
+    try (PreparedStatement ps = connection.prepareStatement(sqlCreation)) {
+
+        ps.setString(1, room.getId());
+        ps.setString(2, room.getFirstPlayerId());
+        ps.setInt(3, room.getStatus());
+        ps.setTimestamp(4, Timestamp.valueOf(room.getCreatedAt()));
+
+        ps.executeUpdate();
+
+    } catch (SQLException ex) {
+        throw new RoomCreationException(ex.getStackTrace());
+    }
+}
+
+
 
     public void updateRoomStatus(String roomId, int status) throws RoomUpdationException{
         String sqlUpdate = "UPDATE ROOM SET status = ? WHERE id = ?";
@@ -52,6 +73,24 @@ String sql =
             throw new RoomUpdationException(ex.getStackTrace());
         }
     }
+     public void updateRoomPlayer(String roomId, String secondPlayerId)
+        throws RoomUpdationException {
+
+    String sqlUpdate =
+        "UPDATE ROOM SET second_player_id = ? WHERE id = ?";
+
+    try (PreparedStatement ps =
+             Database.getInstance().getConnection().prepareStatement(sqlUpdate)) {
+
+        ps.setString(1, secondPlayerId);
+        ps.setString(2, roomId);
+
+        ps.executeUpdate();
+
+    } catch (SQLException ex) {
+        throw new RoomUpdationException(ex.getStackTrace());
+    }
+}
 
     public Room findRoomById(String roomId) throws RoomNotFoundException {
         String sqlSearchingByID = "SELECT * FROM ROOM WHERE id = ?";
