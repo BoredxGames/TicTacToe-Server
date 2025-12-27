@@ -21,11 +21,6 @@
             <version>13</version>
         </dependency>
     </dependencies>
-    <dependency>
-            <groupId>org.apache.derby</groupId>
-            <artifactId>derbyclient</artifactId>
-            <version>10.9.1.0</version>
-        </dependency>
     <build>
         <plugins>
             <plugin>
