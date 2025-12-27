@@ -21,15 +21,15 @@ public class ServerSecurityManager {
     public static String hashText(String text) throws HashingException {
         
         try {
-            byte[] rowText= text.getBytes();
+            byte[] rawText= text.getBytes();
             
             MessageDigest messageDigest = MessageDigest.getInstance(algorithm);
             
-            messageDigest.update(rowText);
+            messageDigest.update(rawText);
             
-            byte []encryptedRowText = messageDigest.digest();
+            byte []encryptedrawText = messageDigest.digest();
             
-            String encryptedText = bytesToHex(encryptedRowText);
+            String encryptedText = bytesToHex(encryptedrawText);
             
             return encryptedText;
         } catch (NoSuchAlgorithmException ex) {
@@ -37,12 +37,15 @@ public class ServerSecurityManager {
         }
     }
     
-    private static String bytesToHex(byte[] bytes) {
-        StringBuilder hexString = new StringBuilder();
-        for (byte b : bytes) {
-            hexString.append(String.format("%x", b));
-        }
-        return hexString.toString();
-    }
+   private static String bytesToHex(byte []bytes)
+   {
+       StringBuilder hexString = new StringBuilder();
+       
+       for (byte b : bytes){
+           hexString.append(String.format("%02X", b));
+       }
+       return hexString.toString();
+   }
    
 }
+
