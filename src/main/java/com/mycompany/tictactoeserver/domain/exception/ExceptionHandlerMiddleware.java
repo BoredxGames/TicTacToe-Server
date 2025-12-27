@@ -27,6 +27,15 @@ public class ExceptionHandlerMiddleware {
             case "hashing-exception":
                 System.out.println("hashing-exception");
                 break;
+             case "room-not-found-exception":
+                System.out.println("room-not-found-exception");
+                break;
+             case "room-updation-exception":
+                System.out.println("room-updation-exception");
+                break;
+             case "room-creation-exception":
+                System.out.println("room-creation-exception");
+                break;    
           
 
         }
