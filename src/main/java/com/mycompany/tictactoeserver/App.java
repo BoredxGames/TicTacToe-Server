@@ -1,14 +1,13 @@
 package com.mycompany.tictactoeserver;
 
-import com.mycompany.tictactoeserver.domain.security.ExceptionHandlerMiddleware;
+import com.mycompany.tictactoeserver.domain.exception.ExceptionHandlerMiddleware;
+import java.io.IOException;
+import java.net.URL;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
-
-import java.io.IOException;
-import java.net.URL;
 
 public class App extends Application {
 
