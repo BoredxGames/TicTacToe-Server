@@ -1,15 +1,20 @@
 package com.mycompany.tictactoeserver.domain.server;
 
-import java.net.Socket;
+import com.mycompany.tictactoeserver.domain.exception.*;
 
 public interface ServerManager {
-    void start();
+    void start() ;
 
-    void stop();
+    void stop() throws StopServerException;
 
-    void broadcastMessage(String message);
+    void broadcastMessage(String message) throws PlayerSendMessageException;
 
-    void sendMessage(String message, Socket socket);
+    void sendMessage(String message, PlayerConnectionHandler player) throws PlayerSendMessageException;
 
     void parseMessage(String message);
+
+    void addListener(PlayerConnectionHandler listener);
+
+    void removeListener(PlayerConnectionHandler listener);
+
 }

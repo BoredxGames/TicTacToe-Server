@@ -1,6 +1,7 @@
 package com.mycompany.tictactoeserver;
 
-import com.mycompany.tictactoeserver.domain.security.ExceptionHandlerMiddleware;
+import com.mycompany.tictactoeserver.domain.exception.ExceptionHandlerMiddleware;
+import com.mycompany.tictactoeserver.domain.server.GameServerManager;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -44,6 +45,16 @@ public class App extends Application {
                 throwable.printStackTrace();
             }
         });
+
+        GameServerManager server = GameServerManager.getInstance();
+
+        try {
+            server.start();
+        }
+        catch (Exception e)
+        {
+            ExceptionHandlerMiddleware.getInstance().handleException(e);
+        }
 
         launch();
     }
