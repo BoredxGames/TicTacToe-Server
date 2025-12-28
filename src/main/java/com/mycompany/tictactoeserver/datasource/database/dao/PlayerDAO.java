@@ -10,6 +10,11 @@ package com.mycompany.tictactoeserver.datasource.database.dao;
  */
 import com.mycompany.tictactoeserver.datasource.database.Database;
 import com.mycompany.tictactoeserver.datasource.model.Player;
+import com.mycompany.tictactoeserver.domain.exception.ExceptionHandlerMiddleware;
+import com.mycompany.tictactoeserver.domain.exception.PlayerDeletionException;
+import com.mycompany.tictactoeserver.domain.exception.PlayerInsertionException;
+import com.mycompany.tictactoeserver.domain.exception.PlayerNotFoundException;
+import com.mycompany.tictactoeserver.domain.exception.PlayerUpdateException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -17,8 +22,11 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
+
 public class PlayerDAO {
-       private final Connection connection;
+
+    private final Connection connection;
+    private final ExceptionHandlerMiddleware exceptionHandler = ExceptionHandlerMiddleware.getInstance();
 
     public PlayerDAO() {
         this.connection = Database.getInstance().getConnection();
@@ -33,7 +41,7 @@ public class PlayerDAO {
             stmt.setInt(4, player.getScore());
             stmt.executeUpdate();
         } catch (SQLException e) {
-            throw new RuntimeException("Error inserting player", e);
+            exceptionHandler.handleException(new PlayerInsertionException(e.getStackTrace()));
         }
     }
 
@@ -43,8 +51,11 @@ public class PlayerDAO {
             stmt.setString(1, id);
             ResultSet rs = stmt.executeQuery();
             if (rs.next()) return mapRow(rs);
+            else {
+                exceptionHandler.handleException(new PlayerNotFoundException(new StackTraceElement[0]));
+            }
         } catch (SQLException e) {
-            throw new RuntimeException("Error finding player by ID", e);
+            exceptionHandler.handleException(new PlayerNotFoundException(e.getStackTrace()));
         }
         return null;
     }
@@ -55,8 +66,11 @@ public class PlayerDAO {
             stmt.setString(1, username);
             ResultSet rs = stmt.executeQuery();
             if (rs.next()) return mapRow(rs);
+            else {
+                exceptionHandler.handleException(new PlayerNotFoundException(new StackTraceElement[0]));
+            }
         } catch (SQLException e) {
-            throw new RuntimeException("Error finding player by username", e);
+            exceptionHandler.handleException(new PlayerNotFoundException(e.getStackTrace()));
         }
         return null;
     }
@@ -69,7 +83,7 @@ public class PlayerDAO {
 
             while (rs.next()) players.add(mapRow(rs));
         } catch (SQLException e) {
-            throw new RuntimeException("Error fetching all players", e);
+            exceptionHandler.handleException(new PlayerNotFoundException(e.getStackTrace()));
         }
         return players;
     }
@@ -83,7 +97,7 @@ public class PlayerDAO {
             stmt.setString(4, player.getId());
             stmt.executeUpdate();
         } catch (SQLException e) {
-            throw new RuntimeException("Error updating player", e);
+            exceptionHandler.handleException(new PlayerUpdateException(e.getStackTrace()));
         }
     }
 
@@ -93,7 +107,7 @@ public class PlayerDAO {
             stmt.setString(1, id);
             stmt.executeUpdate();
         } catch (SQLException e) {
-            throw new RuntimeException("Error deleting player", e);
+            exceptionHandler.handleException(new PlayerDeletionException(e.getStackTrace()));
         }
     }
 
