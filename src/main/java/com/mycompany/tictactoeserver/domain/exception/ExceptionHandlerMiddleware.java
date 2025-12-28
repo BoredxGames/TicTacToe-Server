@@ -9,13 +9,12 @@ public class ExceptionHandlerMiddleware {
 
     private ExceptionHandlerMiddleware() {
     }
-
+  
     public static ExceptionHandlerMiddleware getInstance() {
         if (instance == null)
             instance = new ExceptionHandlerMiddleware();
         return instance;
     }
-
 
     public void handleException(Exception ex) {
         switch (ex.getMessage()) {
@@ -34,6 +33,7 @@ public class ExceptionHandlerMiddleware {
 
     private void logError(String message, StackTraceElement[] stackTrace){
         System.out.println(message + ": ---> " + Arrays.toString(stackTrace));
+    
     }
 
 }
