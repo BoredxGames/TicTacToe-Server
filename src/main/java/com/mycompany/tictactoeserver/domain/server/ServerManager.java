@@ -11,10 +11,11 @@ public interface ServerManager {
 
     void sendMessage(String message, PlayerConnectionHandler player) throws PlayerSendMessageException;
 
-    void parseMessage(String message);
 
     void addListener(PlayerConnectionHandler listener);
 
     void removeListener(PlayerConnectionHandler listener);
+
+    void parseMessage(String message, PlayerConnectionHandler player);
 
 }

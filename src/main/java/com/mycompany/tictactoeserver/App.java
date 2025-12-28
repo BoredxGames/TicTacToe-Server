@@ -1,7 +1,6 @@
 package com.mycompany.tictactoeserver;
 
 import com.mycompany.tictactoeserver.domain.exception.ExceptionHandlerMiddleware;
-import com.mycompany.tictactoeserver.domain.server.GameServerManager;
 import java.io.IOException;
 import java.net.URL;
 import javafx.application.Application;
@@ -44,16 +43,6 @@ public class App extends Application {
                 throwable.printStackTrace();
             }
         });
-
-        GameServerManager server = GameServerManager.getInstance();
-
-        try {
-            server.start();
-        }
-        catch (Exception e)
-        {
-            ExceptionHandlerMiddleware.getInstance().handleException(e);
-        }
 
         launch();
     }
