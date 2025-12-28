@@ -27,7 +27,18 @@ public class ExceptionHandlerMiddleware {
             case "hashing-exception":
                 System.out.println("hashing-exception");
                 break;
-          
+            case "player-insertion-exception":
+                System.out.println("Failed to insert player!");
+                break;
+            case "player-update-exception":
+                System.out.println("Failed to update player!");
+                break;
+            case "player-deletion-exception":
+                System.out.println("Failed to delete player!");
+                break;
+            case "player-not-found-exception":
+                System.out.println("Player not found!");
+                break;
 
         }
     }
