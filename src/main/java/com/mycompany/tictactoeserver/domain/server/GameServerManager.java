@@ -1,14 +1,15 @@
 package com.mycompany.tictactoeserver.domain.server;
 
+import com.mycompany.tictactoeserver.domain.authentication.AuthenticationManager;
+import com.mycompany.tictactoeserver.domain.communication.Message;
 import com.mycompany.tictactoeserver.domain.exception.*;
-import com.mycompany.tictactoeserver.domain.exception.ExceptionHandlerMiddleware;
 import com.mycompany.tictactoeserver.domain.utils.callbacks.PlayerHandlerCallback;
-
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
 import java.util.Vector;
+import org.json.JSONObject;
 
 public class GameServerManager implements ServerManager {
     private final Vector<PlayerConnectionHandler> players = new Vector<>();
@@ -101,9 +102,28 @@ public class GameServerManager implements ServerManager {
 
     private void mapFunction(String message, PlayerConnectionHandler player)
     {
-
-        switch (message)
+        JSONObject jsonMessage= new JSONObject( message);
+        String functoin = jsonMessage.getString("function");
+        String username = jsonMessage.getString("username");
+        String password = jsonMessage.getString("password");
+        AuthenticationManager auth = AuthenticationManager.getInstance();
+        Message msg = new Message(); 
+        switch (functoin)
         {
+            
+            case "login":
+            {
+                msg = auth.login(username, password);
+                break;
+            }
+            case "register":
+            {
+                
+                  msg=auth.register(username, password);
+                  System.out.println("Assign message");
+                  break;
+            }
+            
             default:
                 try
                 {
@@ -115,7 +135,13 @@ public class GameServerManager implements ServerManager {
                 }
 
         }
-
+        try {
+            JSONObject obj = new JSONObject(msg);
+            System.out.println(msg.getData().toString());
+            player.sendMessageToPlayer(obj.toString());
+        } catch (PlayerSendMessageException ex) {
+            System.getLogger(GameServerManager.class.getName()).log(System.Logger.Level.ERROR, (String) null, ex);
+        }
     }
 }
 

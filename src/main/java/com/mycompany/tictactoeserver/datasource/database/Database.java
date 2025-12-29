@@ -14,6 +14,7 @@ public class Database {
     private Database() { }
 
     public static Database getInstance() {
+        
         if (instance == null) {
             synchronized (Database.class) {
                 if (instance == null) {
@@ -21,6 +22,7 @@ public class Database {
                 }
             }
         }
+        
         return instance;
     }
 
