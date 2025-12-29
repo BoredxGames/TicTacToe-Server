@@ -1,19 +1,26 @@
 package com.mycompany.tictactoeserver.datasource.model;
+import java.util.UUID;
+
 
 import java.time.LocalDateTime;
-
 public class ActivityPoint {
-    private String id;
+   private final String id;
     private String playerId;
-    private LocalDateTime startActivityDate;
-    private LocalDateTime endActivityDate;
+    private LocalDateTime startTime;
+    private LocalDateTime endTime;
 
-    public String getId() {
-        return id;
+    public ActivityPoint() {
+        this.id = UUID.randomUUID().toString();
+        this.startTime = LocalDateTime.now();
     }
 
-    public void setId(String id) {
-        this.id = id;
+    public ActivityPoint(String playerId) {
+         this.id = UUID.randomUUID().toString();
+         this.startTime = LocalDateTime.now();
+        this.playerId = playerId;
+    }
+    public String getId() {
+        return id;
     }
 
     public String getPlayerId() {
@@ -24,19 +31,21 @@ public class ActivityPoint {
         this.playerId = playerId;
     }
 
-    public LocalDateTime getStartActivityDate() {
-        return startActivityDate;
+    public LocalDateTime getStartTime() {
+        return startTime;
     }
 
-    public void setStartActivityDate(LocalDateTime startActivityDate) {
-        this.startActivityDate = startActivityDate;
+    public void setStartTime(LocalDateTime startTime) {
+        this.startTime = startTime;
     }
 
-    public LocalDateTime getEndActivityDate() {
-        return endActivityDate;
+    public LocalDateTime getEndTime() {
+        return endTime;
     }
 
-    public void setEndActivityDate(LocalDateTime endActivityDate) {
-        this.endActivityDate = endActivityDate;
+    public void setEndTime(LocalDateTime endTime) {
+        this.endTime = endTime;
     }
 }
+
+
