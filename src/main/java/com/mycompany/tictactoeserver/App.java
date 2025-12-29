@@ -1,5 +1,7 @@
 package com.mycompany.tictactoeserver;
 
+import com.mycompany.tictactoeserver.datasource.database.Database;
+import com.mycompany.tictactoeserver.domain.exception.DatabaseConnectionException;
 import com.mycompany.tictactoeserver.domain.exception.ExceptionHandlerMiddleware;
 import java.io.IOException;
 import java.net.URL;
@@ -15,10 +17,15 @@ public class App extends Application {
 
     @Override
     public void start(Stage stage) throws IOException {
-
-        scene = new Scene(loadFXML("presentation/main_screen"), 640, 480);
-        stage.setScene(scene);
-        stage.show();
+        try {
+            Database db = Database.getInstance();
+            db.connect();
+            scene = new Scene(loadFXML("presentation/main_screen"), 640, 480);
+            stage.setScene(scene);
+            stage.show();
+        } catch (DatabaseConnectionException ex) {
+            System.getLogger(App.class.getName()).log(System.Logger.Level.ERROR, (String) null, ex);
+        }
     }
 
     static void setRoot(String fxml) throws IOException {
