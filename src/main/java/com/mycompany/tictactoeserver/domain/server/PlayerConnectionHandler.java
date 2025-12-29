@@ -4,7 +4,6 @@ import com.mycompany.tictactoeserver.datasource.model.Player;
 import com.mycompany.tictactoeserver.domain.exception.*;
 import com.mycompany.tictactoeserver.domain.utils.callbacks.StringCallback;
 import com.mycompany.tictactoeserver.domain.utils.callbacks.VoidCallback;
-
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;

@@ -65,9 +65,10 @@ public class PlayerDAO {
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setString(1, username);
             ResultSet rs = stmt.executeQuery();
-            if (rs.next()) return mapRow(rs);
+            if (rs.next()) {return mapRow(rs);}
+            
             else {
-                exceptionHandler.handleException(new PlayerNotFoundException(new StackTraceElement[0]));
+               return null;
             }
         } catch (SQLException e) {
             exceptionHandler.handleException(new PlayerNotFoundException(e.getStackTrace()));
