@@ -1,5 +1,7 @@
 package com.mycompany.tictactoeserver.domain.exception;
 
+import java.util.Arrays;
+
 public class ExceptionHandlerMiddleware {
 
     // Singleton
@@ -7,40 +9,41 @@ public class ExceptionHandlerMiddleware {
 
     private ExceptionHandlerMiddleware() {
     }
-   
+
     public static ExceptionHandlerMiddleware getInstance() {
         if (instance == null)
             instance = new ExceptionHandlerMiddleware();
         return instance;
     }
-    
-    
-   
-    public void handleException(Exception ex) {
-        switch (ex.getMessage()) {
 
-            // case "error-name
+
+
+    public void handleException(Exception ex) {
+      
+        switch (ex.getMessage()) {
+            case "start-server-exception":
+            case "stop-server-exception":
+            case "player-connection-exception":
+            case "player-receive-message-exception":
+            case "player-send-message-exception":
             case "database-connection-exception":
-                break;
             case "database-dis-connection-exception":
-                break;
             case "hashing-exception":
-                System.out.println("hashing-exception");
-                break;
             case "player-insertion-exception":
-                System.out.println("Failed to insert player!");
-                break;
             case "player-update-exception":
-                System.out.println("Failed to update player!");
-                break;
             case "player-deletion-exception":
-                System.out.println("Failed to delete player!");
-                break;
             case "player-not-found-exception":
-                System.out.println("Player not found!");
-                break;
+            default:
 
         }
+      
+        logError(ex.getMessage(), ex.getStackTrace());
+    }
+
+
+
+    private void logError(String message, StackTraceElement[] stackTrace){
+        System.out.println(message + ": ---> " + Arrays.toString(stackTrace));
     }
 
 }
