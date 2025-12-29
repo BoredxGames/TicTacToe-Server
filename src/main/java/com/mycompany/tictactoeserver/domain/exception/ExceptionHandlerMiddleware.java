@@ -29,11 +29,24 @@ public class ExceptionHandlerMiddleware {
             case "database-connection-exception":
             case "database-dis-connection-exception":
             case "hashing-exception":
-            case "player-insertion-exception":
+
+                System.out.println("hashing-exception");
+                break;
+             case "room-not-found-exception":
+                System.out.println("room-not-found-exception");
+                break;
+             case "room-updation-exception":
+                System.out.println("room-updation-exception");
+                break;
+             case "room-creation-exception":
+                System.out.println("room-creation-exception");
+                break;    
+                  case "player-insertion-exception":
             case "player-update-exception":
             case "player-deletion-exception":
             case "player-not-found-exception":
             default:
+
 
         }
       

@@ -5,6 +5,7 @@ module com.mycompany.tictactoeserver {
     requires java.sql;
     requires derbyclient;
 
+
     opens com.mycompany.tictactoeserver to javafx.fxml;
     opens com.mycompany.tictactoeserver.presentation to javafx.fxml;
 
