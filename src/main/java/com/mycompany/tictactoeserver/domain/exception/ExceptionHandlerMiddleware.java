@@ -19,6 +19,7 @@ public class ExceptionHandlerMiddleware {
 
 
     public void handleException(Exception ex) {
+      
         switch (ex.getMessage()) {
             case "start-server-exception":
             case "stop-server-exception":
@@ -28,9 +29,14 @@ public class ExceptionHandlerMiddleware {
             case "database-connection-exception":
             case "database-dis-connection-exception":
             case "hashing-exception":
+            case "player-insertion-exception":
+            case "player-update-exception":
+            case "player-deletion-exception":
+            case "player-not-found-exception":
             default:
 
         }
+      
         logError(ex.getMessage(), ex.getStackTrace());
     }
 
