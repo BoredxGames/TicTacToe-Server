@@ -16,7 +16,11 @@ public class Room {
         this.id = UUID.randomUUID().toString();
         this.createdAt = LocalDateTime.now();
     }
-
+ public Room(String firstPlayerId ) {
+       this.id = UUID.randomUUID().toString();
+        this.createdAt = LocalDateTime.now();
+        this.firstPlayerId = firstPlayerId;
+    }
     public Room(String firstPlayerId, String secondPlayerId) {
        this.id = UUID.randomUUID().toString();
         this.createdAt = LocalDateTime.now();
