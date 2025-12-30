@@ -12,7 +12,7 @@ module com.mycompany.tictactoeserver {
     exports com.mycompany.tictactoeserver;
     exports com.mycompany.tictactoeserver.presentation;
     exports com.mycompany.tictactoeserver.domain.server;
-    exports com.mycompany.tictactoeserver.domain.exception;
+    exports com.mycompany.tictactoeserver.domain.utils.exception;
     exports com.mycompany.tictactoeserver.domain.utils.callbacks;
     exports com.mycompany.tictactoeserver.datasource.model;
 

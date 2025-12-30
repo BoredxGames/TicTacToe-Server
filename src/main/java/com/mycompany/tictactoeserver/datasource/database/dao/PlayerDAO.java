@@ -8,18 +8,12 @@ package com.mycompany.tictactoeserver.datasource.database.dao;
  *
  * @author sheri
  */
+
 import com.mycompany.tictactoeserver.datasource.database.Database;
 import com.mycompany.tictactoeserver.datasource.model.Player;
-import com.mycompany.tictactoeserver.domain.exception.ExceptionHandlerMiddleware;
-import com.mycompany.tictactoeserver.domain.exception.PlayerDeletionException;
-import com.mycompany.tictactoeserver.domain.exception.PlayerInsertionException;
-import com.mycompany.tictactoeserver.domain.exception.PlayerNotFoundException;
-import com.mycompany.tictactoeserver.domain.exception.PlayerUpdateException;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
+import com.mycompany.tictactoeserver.domain.utils.exception.*;
+
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -65,10 +59,10 @@ public class PlayerDAO {
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setString(1, username);
             ResultSet rs = stmt.executeQuery();
-            if (rs.next()) {return mapRow(rs);}
-            
-            else {
-               return null;
+            if (rs.next()) {
+                return mapRow(rs);
+            } else {
+                return null;
             }
         } catch (SQLException e) {
             exceptionHandler.handleException(new PlayerNotFoundException(e.getStackTrace()));

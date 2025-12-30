@@ -1,15 +1,17 @@
 package com.mycompany.tictactoeserver;
 
 import com.mycompany.tictactoeserver.datasource.database.Database;
-import com.mycompany.tictactoeserver.domain.exception.DatabaseConnectionException;
-import com.mycompany.tictactoeserver.domain.exception.ExceptionHandlerMiddleware;
-import java.io.IOException;
-import java.net.URL;
+import com.mycompany.tictactoeserver.domain.services.communication.MessageRouter;
+import com.mycompany.tictactoeserver.domain.utils.exception.DatabaseConnectionException;
+import com.mycompany.tictactoeserver.domain.utils.exception.ExceptionHandlerMiddleware;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
+
+import java.io.IOException;
+import java.net.URL;
 
 public class App extends Application {
 
@@ -17,15 +19,10 @@ public class App extends Application {
 
     @Override
     public void start(Stage stage) throws IOException {
-        try {
-            Database db = Database.getInstance();
-            db.connect();
-            scene = new Scene(loadFXML("presentation/main_screen"), 640, 480);
-            stage.setScene(scene);
-            stage.show();
-        } catch (DatabaseConnectionException ex) {
-            System.getLogger(App.class.getName()).log(System.Logger.Level.ERROR, (String) null, ex);
-        }
+        setupDependencies();
+        scene = new Scene(loadFXML("presentation/main_screen"), 640, 480);
+        stage.setScene(scene);
+        stage.show();
     }
 
     static void setRoot(String fxml) throws IOException {
@@ -41,7 +38,7 @@ public class App extends Application {
         return fxmlLoader.load();
     }
 
-    public static void main(String[] args) {
+    static void main(String[] args) {
 
         Thread.setDefaultUncaughtExceptionHandler((thread, throwable) -> {
             if (throwable instanceof Exception) {
@@ -51,6 +48,19 @@ public class App extends Application {
             }
         });
 
+
         launch();
+    }
+
+    private void setupDependencies() {
+        try {
+            Database.getInstance().connect();
+
+        } catch (DatabaseConnectionException ex) {
+            System.getLogger(App.class.getName()).log(System.Logger.Level.ERROR, (String) null, ex);
+        }
+
+        MessageRouter.getInstance();
+
     }
 }

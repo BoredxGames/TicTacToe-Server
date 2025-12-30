@@ -2,6 +2,7 @@ package com.mycompany.tictactoeserver.datasource.model;
 
 
 import java.time.LocalDateTime;
+
 public class ActivityPoint {
     private String playerId;
     private LocalDateTime startTime;
@@ -12,7 +13,7 @@ public class ActivityPoint {
     }
 
     public ActivityPoint(String playerId) {
-         this.startTime = LocalDateTime.now();
+        this.startTime = LocalDateTime.now();
         this.playerId = playerId;
     }
 
