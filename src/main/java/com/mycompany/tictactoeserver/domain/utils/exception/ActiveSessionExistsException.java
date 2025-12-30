@@ -1,4 +1,4 @@
-package com.mycompany.tictactoeserver.domain.exception;
+package com.mycompany.tictactoeserver.domain.utils.exception;
 
 public class ActiveSessionExistsException extends Exception {
     public ActiveSessionExistsException(StackTraceElement[] stackTraceElements) {

@@ -1,4 +1,4 @@
-package com.mycompany.tictactoeserver.domain.exception;
+package com.mycompany.tictactoeserver.domain.utils.exception;
 
 public class ActivityNotFoundException extends Exception {
     public ActivityNotFoundException(StackTraceElement[] stackTraceElements) {

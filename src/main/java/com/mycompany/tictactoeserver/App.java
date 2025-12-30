@@ -53,9 +53,12 @@ public class App extends Application {
     }
 
     private void setupDependencies() {
-
+        try {
+            Database.getInstance().connect();
+        } catch (DatabaseConnectionException e) {
+            ExceptionHandlerMiddleware.getInstance().handleException(e);
+        }
 
         MessageRouter.getInstance();
-
     }
 }

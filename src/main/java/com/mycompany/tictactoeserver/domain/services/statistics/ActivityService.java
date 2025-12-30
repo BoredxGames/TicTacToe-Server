@@ -1,8 +1,8 @@
-package com.mycompany.tictactoeserver.domain.statistics;
+package com.mycompany.tictactoeserver.domain.services.statistics;
 
-import com.mycompany.tictactoeserver.datasource.database.dao.ActivityDAO;
+import com.mycompany.tictactoeserver.datasource.database.dao.*;
 import com.mycompany.tictactoeserver.datasource.model.ActivityPoint;
-import com.mycompany.tictactoeserver.domain.exception.*;
+import com.mycompany.tictactoeserver.domain.utils.exception.*;
 
 public class ActivityService {
     private final ActivityDAO activityDao;
