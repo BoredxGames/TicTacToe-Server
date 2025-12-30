@@ -4,12 +4,12 @@ import java.util.UUID;
 
 public class Player {
 
-   final  private String id;
+    final private String id;
     private String username;
     private String password;
     private int score;
-    
-    
+
+
     public Player() {
         this.id = UUID.randomUUID().toString();
         this.score = 0;
@@ -21,6 +21,7 @@ public class Player {
         this.password = password;
         this.score = 0;
     }
+
     public Player(String username, String password, int score) {
         this.id = UUID.randomUUID().toString();
         this.username = username;
@@ -29,11 +30,10 @@ public class Player {
     }
 
 
-
     public String getId() {
         return id;
     }
- 
+
     public String getUsername() {
         return username;
     }

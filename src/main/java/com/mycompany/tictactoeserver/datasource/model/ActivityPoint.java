@@ -3,6 +3,7 @@ import java.util.UUID;
 
 
 import java.time.LocalDateTime;
+
 public class ActivityPoint {
    private final String id;
     private String playerId;
@@ -15,9 +16,10 @@ public class ActivityPoint {
     }
 
     public ActivityPoint(String playerId) {
-         this.id = UUID.randomUUID().toString();
-         this.startTime = LocalDateTime.now();
+        this.startTime = LocalDateTime.now();
         this.playerId = playerId;
+       
+        this.id = UUID.randomUUID().toString();
     }
     public String getId() {
         return id;

@@ -22,9 +22,8 @@ public class MainScreenController implements Initializable {
     private void toggleServer() {
         GameServerManager serverManager = GameServerManager.getInstance();
 
-        try
-        {
-            if(!serverManager.isRunning()){
+        try {
+            if (!serverManager.isRunning()) {
                 serverManager.start();
                 centerButton.setText("Stop Server");
                 return;
@@ -32,12 +31,10 @@ public class MainScreenController implements Initializable {
 
             serverManager.stop();
             centerButton.setText("Start Server");
-        }
-        catch (Exception e)
-        {
+        } catch (Exception e) {
             System.out.println("Msg: " + e.getMessage());
             System.out.println("Trace: " + Arrays.toString(e.getStackTrace()));
-            showAlert(Alert.AlertType.ERROR,  e.getMessage(), Arrays.toString(e.getStackTrace()));
+            showAlert(Alert.AlertType.ERROR, e.getMessage(), Arrays.toString(e.getStackTrace()));
         }
     }
 
