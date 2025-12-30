@@ -18,6 +18,8 @@ public class ActivityPoint {
     public ActivityPoint(String playerId) {
         this.startTime = LocalDateTime.now();
         this.playerId = playerId;
+       
+        this.id = UUID.randomUUID().toString();
     }
     public String getId() {
         return id;
