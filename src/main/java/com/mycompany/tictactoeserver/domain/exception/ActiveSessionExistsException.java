@@ -6,7 +6,7 @@ public class ActiveSessionExistsException extends Exception {
         setStackTrace(stackTraceElements);
     }
 
-    public ActiveSessionExistsException(String[] exceptionData) {
-        super("active-session-exists-exception for player " + exceptionData[0] + " in session " + exceptionData[1] + ".");
+    public ActiveSessionExistsException() {
+        super("active-session-exists-exception");
     }
 }

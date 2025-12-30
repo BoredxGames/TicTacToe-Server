@@ -69,7 +69,10 @@ public class ExceptionHandlerMiddleware {
                 System.out.println("activity-not-found-exception for activity " + data[0]);
                 break;
             default:
+                System.out.println("unknown-exception");
+                break;
         }
+        logError(ex.getMessage(), ex.getStackTrace());
     }
 
     private void logError(String message, StackTraceElement[] stackTrace) {

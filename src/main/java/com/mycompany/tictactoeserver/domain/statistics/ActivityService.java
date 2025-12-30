@@ -1,15 +1,15 @@
 package com.mycompany.tictactoeserver.domain.statistics;
 
-import com.mycompany.tictactoeserver.datasource.database.dao.ActivityDao;
+import com.mycompany.tictactoeserver.datasource.database.dao.ActivityDAO;
 import com.mycompany.tictactoeserver.datasource.model.ActivityPoint;
 import com.mycompany.tictactoeserver.domain.exception.*;
 
 public class ActivityService {
-    private final ActivityDao activityDao;
+    private final ActivityDAO activityDao;
     private final ExceptionHandlerMiddleware exceptionHandler;
 
     public ActivityService() {
-        this.activityDao = new ActivityDao();
+        this.activityDao = new ActivityDAO();
         this.exceptionHandler = ExceptionHandlerMiddleware.getInstance();
     }
 

@@ -14,10 +14,10 @@ import java.util.List;
 /**
  * @author Tasneem
  */
-public class ActivityDao {
+public class ActivityDAO {
     private final Connection connection;
 
-    public ActivityDao() {
+    public ActivityDAO() {
         this.connection = Database.getInstance().getConnection();
     }
 
@@ -25,7 +25,7 @@ public class ActivityDao {
         ActivityPoint existingSession = getActiveSessionByPlayerId(activity.getPlayerId());
         if (existingSession != null) {
             String[] exceptionData = {activity.getPlayerId(), existingSession.getId()};
-            throw new ActiveSessionExistsException(exceptionData);
+            throw new ActiveSessionExistsException();
         }
 
         String sql = "INSERT INTO ACTIVITY (id, player_id, start_date, end_date) VALUES (?, ?, ?, ?)";
@@ -51,7 +51,7 @@ public class ActivityDao {
 
             int rowsAffected = preparedStatement.executeUpdate();
             if (rowsAffected == 0) {
-                throw new ActivityNotFoundException(activity.getId());
+                throw new ActivityNotFoundException();
             }
             return true;
         } catch (SQLException e) {
@@ -62,7 +62,7 @@ public class ActivityDao {
     public boolean endActivityByPlayerId(String playerId) throws ActivityNotFoundException, DataAccessException {
         ActivityPoint activeSession = getActiveSessionByPlayerId(playerId);
         if (activeSession == null) {
-            throw new ActivityNotFoundException("No active session for player: " + playerId);
+            throw new ActivityNotFoundException();
         }
 
         String sql = "UPDATE ACTIVITY SET end_date = ? WHERE id = ?";
@@ -86,7 +86,7 @@ public class ActivityDao {
                 if (resultSet.next()) {
                     return mapResultSetToActivity(resultSet);
                 }
-                throw new ActivityNotFoundException(activityId);
+                throw new ActivityNotFoundException();
             }
         } catch (SQLException e) {
             throw new DataAccessException(e.getStackTrace());
@@ -173,7 +173,7 @@ public class ActivityDao {
 
             int rowsAffected = preparedStatement.executeUpdate();
             if (rowsAffected == 0) {
-                throw new ActivityNotFoundException(activityId);
+                throw new ActivityNotFoundException();
             }
             return true;
         } catch (SQLException e) {
