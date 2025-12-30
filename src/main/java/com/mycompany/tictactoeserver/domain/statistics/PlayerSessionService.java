@@ -1,22 +1,22 @@
 package com.mycompany.tictactoeserver.domain.statistics;
 
-import com.mycompany.tictactoeserver.datasource.database.dao.ActivityDAO;
-import com.mycompany.tictactoeserver.datasource.model.ActivityPoint;
+import com.mycompany.tictactoeserver.datasource.database.dao.SessionDAO;
+import com.mycompany.tictactoeserver.datasource.model.Session;
 import com.mycompany.tictactoeserver.domain.exception.*;
 
-public class ActivityService {
-    private final ActivityDAO activityDao;
+public class PlayerSessionService {
+    private final SessionDAO sessionDao;
     private final ExceptionHandlerMiddleware exceptionHandler;
 
-    public ActivityService() {
-        this.activityDao = new ActivityDAO();
+    public PlayerSessionService() {
+        this.sessionDao = new SessionDAO();
         this.exceptionHandler = ExceptionHandlerMiddleware.getInstance();
     }
 
-    public boolean startPlayerActivity(String playerId) {
+    public boolean startPlayerSession(String playerId) {
         try {
-            ActivityPoint activity = new ActivityPoint(playerId);
-            return activityDao.startActivity(activity);
+            Session session = new Session(playerId);
+            return sessionDao.startSession(session);
 
         } catch (ActiveSessionExistsException e) {
             String[] data = {playerId, e.getMessage()};
@@ -25,11 +25,11 @@ public class ActivityService {
         }
     }
 
-    public boolean endPlayerActivity(String playerId) {
+    public boolean endPlayerSession(String playerId) {
         try {
-            return activityDao.endActivityByPlayerId(playerId);
+            return sessionDao.endSessionByPlayerId(playerId);
 
-        } catch (ActivityNotFoundException e) {
+        } catch (SessionNotFoundException e) {
             String[] data = {playerId};
             exceptionHandler.handleException(e, data);
             return false;
@@ -41,12 +41,12 @@ public class ActivityService {
     }
 
     public boolean isPlayerActive(String playerId) {
-        return activityDao.hasActiveSession(playerId);
+        return sessionDao.hasActiveSession(playerId);
     }
 
     public long getPlayerPlayTime(String playerId) {
         try {
-            return activityDao.getTotalPlayTimeMinutes(playerId);
+            return sessionDao.getTotalPlayTimeMinutes(playerId);
 
         } catch (DataAccessException e) {
             exceptionHandler.handleException(e);

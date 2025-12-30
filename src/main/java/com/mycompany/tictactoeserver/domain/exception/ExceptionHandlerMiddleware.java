@@ -65,8 +65,8 @@ public class ExceptionHandlerMiddleware {
             case "active-session-exists-exception":
                 System.out.println("active-session-exists-exception for player " + data[0] + " in session " + data[1] + ".");
                 break;
-            case "activity-not-found-exception":
-                System.out.println("activity-not-found-exception for activity " + data[0]);
+            case "session-not-found-exception":
+                System.out.println("session-not-found-exception for activity " + data[0]);
                 break;
             default:
                 System.out.println("unknown-exception");
