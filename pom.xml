@@ -74,7 +74,8 @@
                         <configuration>
                             <options>
                                 <option>--enable-native-access=javafx.graphics</option>
-                                <option>-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=localhost:8000</option>
+                                <option>-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=localhost:8000
+                                </option>
                             </options>
                         </configuration>
                     </execution>
@@ -85,4 +86,5 @@
 
         </plugins>
     </build>
+
 </project>
