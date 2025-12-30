@@ -2,14 +2,15 @@ package com.mycompany.tictactoeserver.domain.services.authentication;
 
 import com.mycompany.tictactoeserver.datasource.database.dao.PlayerDAO;
 import com.mycompany.tictactoeserver.datasource.model.Player;
+import com.mycompany.tictactoeserver.domain.entity.AuthResponseEntity;
+import com.mycompany.tictactoeserver.domain.services.communication.Action;
 import com.mycompany.tictactoeserver.domain.services.communication.Header;
 import com.mycompany.tictactoeserver.domain.services.communication.Message;
 import com.mycompany.tictactoeserver.domain.services.communication.MessageType;
-import com.mycompany.tictactoeserver.domain.entity.AuthResponseEntity;
+import com.mycompany.tictactoeserver.domain.services.security.ServerSecurityManager;
 import com.mycompany.tictactoeserver.domain.utils.exception.ExceptionHandlerMiddleware;
 import com.mycompany.tictactoeserver.domain.utils.exception.HashingException;
 import com.mycompany.tictactoeserver.domain.utils.exception.ServerInterruptException;
-import com.mycompany.tictactoeserver.domain.services.security.ServerSecurityManager;
 import org.json.JSONObject;
 
 public class AuthenticationService {
