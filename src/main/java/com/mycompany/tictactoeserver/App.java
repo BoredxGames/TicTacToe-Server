@@ -53,12 +53,7 @@ public class App extends Application {
     }
 
     private void setupDependencies() {
-        try {
-            Database.getInstance().connect();
 
-        } catch (DatabaseConnectionException ex) {
-            System.getLogger(App.class.getName()).log(System.Logger.Level.ERROR, (String) null, ex);
-        }
 
         MessageRouter.getInstance();
 
