@@ -1,5 +1,7 @@
 package com.mycompany.tictactoeserver.domain.exception;
 
+import com.mycompany.tictactoeserver.datasource.model.Player;
+
 import java.util.Arrays;
 
 public class ExceptionHandlerMiddleware {
@@ -16,10 +18,8 @@ public class ExceptionHandlerMiddleware {
         return instance;
     }
 
-
-
     public void handleException(Exception ex) {
-      
+
         switch (ex.getMessage()) {
             case "start-server-exception":
             case "stop-server-exception":
@@ -32,31 +32,47 @@ public class ExceptionHandlerMiddleware {
 
                 System.out.println("hashing-exception");
                 break;
-             case "room-not-found-exception":
+            case "room-not-found-exception":
                 System.out.println("room-not-found-exception");
                 break;
-             case "room-updation-exception":
+            case "room-updation-exception":
                 System.out.println("room-updation-exception");
                 break;
-             case "room-creation-exception":
+            case "room-creation-exception":
                 System.out.println("room-creation-exception");
-                break;    
-                  case "player-insertion-exception":
+                break;
+            case "player-insertion-exception":
             case "player-update-exception":
+                System.out.println("player-update-exception");
+                break;
             case "player-deletion-exception":
+                System.out.println("player-deletion-exception");
+                break;
             case "player-not-found-exception":
+                System.out.println("player-not-found-exception");
+                break;
+            case "data-access-exception":
+                System.out.println("data-access-exception");
+                break;
             default:
-
-
         }
-      
+
         logError(ex.getMessage(), ex.getStackTrace());
     }
 
-
-
-    private void logError(String message, StackTraceElement[] stackTrace){
-        System.out.println(message + ": ---> " + Arrays.toString(stackTrace));
+    public void handleException(Exception ex, String[] data) {
+        switch (ex.getMessage()) {
+            case "active-session-exists-exception":
+                System.out.println("active-session-exists-exception for player " + data[0] + " in session " + data[1] + ".");
+                break;
+            case "activity-not-found-exception":
+                System.out.println("activity-not-found-exception for activity " + data[0]);
+                break;
+            default:
+        }
     }
 
+    private void logError(String message, StackTraceElement[] stackTrace) {
+        System.out.println(message + ": ---> " + Arrays.toString(stackTrace));
+    }
 }
