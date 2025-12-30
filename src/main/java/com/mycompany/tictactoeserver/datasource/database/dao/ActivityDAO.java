@@ -24,7 +24,6 @@ public class ActivityDAO {
     public boolean startActivity(ActivityPoint activity) throws ActiveSessionExistsException {
         ActivityPoint existingSession = getActiveSessionByPlayerId(activity.getPlayerId());
         if (existingSession != null) {
-            String[] exceptionData = {activity.getPlayerId(), existingSession.getId()};
             throw new ActiveSessionExistsException();
         }
 
@@ -189,6 +188,21 @@ public class ActivityDAO {
         } catch (SQLException e) {
             throw new DataAccessException(e.getStackTrace());
         }
+    }
+
+    public List<ActivityPoint> getAllSessions() throws ActivityNotFoundException {
+        String sql = "SELECT id, player_id, start_date, end_date FROM ACTIVITY ORDER BY start_date DESC";
+        List<ActivityPoint> activities = new ArrayList<>();
+        try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+            try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                while (resultSet.next()) {
+                    activities.add(mapResultSetToActivity(resultSet));
+                }
+            }
+        } catch (SQLException e) {
+            throw new ActivityNotFoundException(e.getStackTrace());
+        }
+        return activities;
     }
 
     public List<ActivityPoint> getAllActiveSessions() throws DataAccessException {
