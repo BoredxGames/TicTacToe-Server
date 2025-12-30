@@ -1,5 +1,7 @@
 package com.mycompany.tictactoeserver.domain.utils.exception;
 
+import com.mycompany.tictactoeserver.datasource.model.Player;
+
 import java.util.Arrays;
 
 public class ExceptionHandlerMiddleware {
@@ -15,7 +17,6 @@ public class ExceptionHandlerMiddleware {
             instance = new ExceptionHandlerMiddleware();
         return instance;
     }
-
 
     public void handleException(Exception ex) {
 
@@ -35,9 +36,24 @@ public class ExceptionHandlerMiddleware {
             case "player-update-exception":
             case "player-deletion-exception":
             case "player-not-found-exception":
+            case "data-access-exception":
             default:
+        }
 
+        logError(ex.getMessage(), ex.getStackTrace());
+    }
 
+    public void handleException(Exception ex, String[] data) {
+        switch (ex.getMessage()) {
+            case "active-session-exists-exception":
+                System.out.println("active-session-exists-exception for player " + data[0] + " in session " + data[1] + ".");
+                break;
+            case "activity-not-found-exception":
+                System.out.println("activity-not-found-exception for activity " + data[0]);
+                break;
+            default:
+                System.out.println("unknown-exception");
+                break;
         }
 
         logError(ex.getMessage(), ex.getStackTrace());
@@ -47,5 +63,4 @@ public class ExceptionHandlerMiddleware {
     private void logError(String message, StackTraceElement[] stackTrace) {
         System.out.println(message + ": ---> " + Arrays.toString(stackTrace));
     }
-
 }
