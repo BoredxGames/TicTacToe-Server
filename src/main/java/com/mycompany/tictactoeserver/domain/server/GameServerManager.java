@@ -36,6 +36,18 @@ public class GameServerManager {
     public boolean isRunning() {
         return runnable.isRunning();
     }
+    public PlayerConnectionHandler getPlayerById(String playerId) {
+    synchronized (lock) {
+        for (PlayerConnectionHandler player : players) {
+            if (player.getPlayer() != null &&
+                player.getPlayer().getId().equals(playerId)) {
+                return player;
+            }
+        }
+    }
+    return null;
+}
+
 
     public void start() {
         synchronized (lock) {

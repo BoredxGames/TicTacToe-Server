@@ -3,6 +3,7 @@ package com.mycompany.tictactoeserver.domain.services.communication;
 import com.mycompany.tictactoeserver.domain.server.GameServerManager;
 import com.mycompany.tictactoeserver.domain.server.PlayerConnectionHandler;
 import com.mycompany.tictactoeserver.domain.services.authentication.AuthenticationService;
+import com.mycompany.tictactoeserver.domain.services.game.GameManager;
 import com.mycompany.tictactoeserver.domain.utils.exception.PlayerSendMessageException;
 import org.json.JSONObject;
 
@@ -29,7 +30,7 @@ public class MessageRouter {
         assert messageType != null;
         switch (messageType) {
             case REQUEST:
-                Message msg = handleRequest(json);
+                Message msg = handleRequest(json,sender);
                 server.sendMessage(msg.toJson().toString(), sender);
                 break;
             case RESPONSE:
@@ -47,7 +48,7 @@ public class MessageRouter {
         }
     }
 
-    private Message handleRequest(JSONObject json) {
+    private Message handleRequest(JSONObject json,PlayerConnectionHandler sender) {
         Action action = Action.valueOf(json.getInt("action"));
 
         assert action != null;
@@ -56,6 +57,12 @@ public class MessageRouter {
                     AuthenticationService.getInstance().login(json.getString("username"), json.getString("password"));
             case REGISTER ->
                     AuthenticationService.getInstance().register(json.getString("username"), json.getString("password"));
+           case REQUEST_GAME -> {
+    PlayerConnectionHandler target =
+            server.getPlayerById(json.getString("targetId"));
+            GameManager.getInstance().requestGame(sender, target);
+}
+
             default -> {
                 System.out.println("Unknown Action: " + action);
                 yield new Message();
