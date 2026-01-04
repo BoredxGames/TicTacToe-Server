@@ -156,11 +156,14 @@ public class GameManager {
             synchronized (lock) {
                 activeRooms.add(room);
             }
+        notifyPlayersGameStarted(room);
 
             JSONObject data = new JSONObject();
             data.put("roomId", room.getRoomId());
             data.put("player1", p1.getPlayer().getId());
             data.put("player2", p2.getPlayer().getId());
+         
+  
 
             return new Message(
                     new Header(MessageType.REQUEST, Action.GAME_START),
@@ -177,6 +180,27 @@ public class GameManager {
             return new Message(new Header(MessageType.ERROR, Action.GAME_START), json);
         }
     }
+   public void notifyPlayersGameStarted(GameRoom room) {
+
+    JSONObject data = new JSONObject();
+    data.put("roomId", room.getRoomId());
+    data.put("player1", room.getPlayer1().getPlayer().getId());
+    data.put("player2", room.getPlayer2().getPlayer().getId());
+
+    Message msg = new Message(
+            new Header(MessageType.EVENT, Action.GAME_START),
+            data
+    );
+
+    try {
+        room.getPlayer1().sendMessageToPlayer(msg.toJson().toString());
+        room.getPlayer2().sendMessageToPlayer(msg.toJson().toString());
+    } catch (Exception e) {
+        ExceptionHandlerMiddleware.getInstance()
+                .handleException(new ServerInterruptException(e.getStackTrace()));
+    }
+}
+
 
     public Message forwardMove(String roomId,
                                PlayerConnectionHandler sender,
@@ -198,7 +222,7 @@ public class GameManager {
                     }
 
                     return new Message(
-                            new Header(MessageType.EVENT, Action.SEND_GAME_UPDATE),
+                            new Header(MessageType.REQUEST, Action.SEND_GAME_UPDATE),
                             move
                     );
                 }

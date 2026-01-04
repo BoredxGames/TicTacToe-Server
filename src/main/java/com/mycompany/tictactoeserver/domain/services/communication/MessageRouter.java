@@ -60,8 +60,18 @@ public class MessageRouter {
            case REQUEST_GAME -> {
     PlayerConnectionHandler target =
             server.getPlayerById(json.getString("targetId"));
-            GameManager.getInstance().requestGame(sender, target);
+        yield GameManager.getInstance().requestGame(sender, target);      
 }
+            case GAME_RESPONSE -> {
+            boolean accepted = json.getBoolean("accepted");
+            yield GameManager.getInstance().handleGameResponse(sender, accepted);
+        }
+        case SEND_GAME_UPDATE -> {
+            String roomId = json.getString("roomId");
+            JSONObject move = json.getJSONObject("move");
+            yield GameManager.getInstance().forwardMove(roomId, sender, move);
+        }
+           
 
             default -> {
                 System.out.println("Unknown Action: " + action);

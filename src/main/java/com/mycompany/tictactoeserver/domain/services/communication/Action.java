@@ -5,9 +5,9 @@ public enum Action {
     REGISTER(20),
     REQUEST_GAME(30),
     GAME_RESPONSE(40),
-    SEND_GAME_UPDATE(50),
-    GAME_END(60),
-    GAME_START(70);
+    GAME_START(50),
+    SEND_GAME_UPDATE(60),
+    GAME_END(70);
 
 
 

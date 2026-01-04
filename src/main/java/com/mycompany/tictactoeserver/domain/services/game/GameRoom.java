@@ -24,6 +24,13 @@ public class GameRoom {
     public String getRoomId() {
         return roomId;
     }
+        public PlayerConnectionHandler getPlayer1() {
+        return player1;
+    }
+
+    public PlayerConnectionHandler getPlayer2() {
+        return player2;
+    }
 
     public boolean hasPlayer(PlayerConnectionHandler player) {
         return player == player1 || player == player2;
