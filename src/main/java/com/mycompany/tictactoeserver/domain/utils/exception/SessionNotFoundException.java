@@ -1,4 +1,4 @@
-package com.mycompany.tictactoeserver.domain.exception;
+package com.mycompany.tictactoeserver.domain.utils.exception;
 
 public class SessionNotFoundException extends Exception {
     public SessionNotFoundException(StackTraceElement[] stackTraceElements) {
