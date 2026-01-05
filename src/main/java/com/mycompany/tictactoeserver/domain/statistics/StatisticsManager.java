@@ -1,11 +1,13 @@
 package com.mycompany.tictactoeserver.domain.statistics;
 
-import com.mycompany.tictactoeserver.datasource.model.Session;
 import com.mycompany.tictactoeserver.datasource.model.Player;
+import com.mycompany.tictactoeserver.domain.entity.ActivityPoint;
+import com.mycompany.tictactoeserver.domain.entity.PlayerEntity;
 
-import java.util.Vector;
+import java.util.List;
 
 public interface StatisticsManager {
-    Vector<Session> getActivity();
-    Vector<Player> getLeaderboard();
+    List<ActivityPoint> getAllPlayerSessions();
+    List<PlayerEntity> getLeaderboard();
+    int getTotalPlayersCount();
 }
