@@ -1,8 +1,8 @@
-package com.mycompany.tictactoeserver.domain.service;
+package com.mycompany.tictactoeserver.domain.services.playerSession;
 
 import com.mycompany.tictactoeserver.datasource.database.dao.SessionDAO;
 import com.mycompany.tictactoeserver.datasource.model.Session;
-import com.mycompany.tictactoeserver.domain.exception.*;
+import com.mycompany.tictactoeserver.domain.utils.exception.*;
 
 import java.util.List;
 

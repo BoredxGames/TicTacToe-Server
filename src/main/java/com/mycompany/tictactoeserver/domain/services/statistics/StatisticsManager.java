@@ -1,4 +1,4 @@
-package com.mycompany.tictactoeserver.domain.statistics;
+package com.mycompany.tictactoeserver.domain.services.statistics;
 
 import com.mycompany.tictactoeserver.datasource.model.Player;
 import com.mycompany.tictactoeserver.domain.entity.ActivityPoint;

@@ -1,4 +1,4 @@
-package com.mycompany.tictactoeserver.domain.service;
+package com.mycompany.tictactoeserver.domain.services.player;
 
 import com.mycompany.tictactoeserver.datasource.database.dao.PlayerDAO;
 import com.mycompany.tictactoeserver.datasource.model.Player;

@@ -1,11 +1,11 @@
-package com.mycompany.tictactoeserver.domain.statistics;
+package com.mycompany.tictactoeserver.domain.services.statistics;
 
 import com.mycompany.tictactoeserver.datasource.model.Player;
 import com.mycompany.tictactoeserver.datasource.model.Session;
 import com.mycompany.tictactoeserver.domain.entity.ActivityPoint;
 import com.mycompany.tictactoeserver.domain.entity.PlayerEntity;
-import com.mycompany.tictactoeserver.domain.service.PlayerService;
-import com.mycompany.tictactoeserver.domain.service.PlayerSessionService;
+import com.mycompany.tictactoeserver.domain.services.player.PlayerService;
+import com.mycompany.tictactoeserver.domain.services.playerSession.PlayerSessionService;
 
 import java.util.*;
 import java.util.List;
