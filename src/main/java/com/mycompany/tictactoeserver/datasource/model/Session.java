@@ -14,9 +14,10 @@ public class Session {
     }
 
     public Session(String playerId) {
-         this.id = UUID.randomUUID().toString();
-         this.startTime = LocalDateTime.now();
+        this.startTime = LocalDateTime.now();
         this.playerId = playerId;
+
+        this.id = UUID.randomUUID().toString();
     }
     public String getId() {
         return id;

@@ -1,17 +1,18 @@
 package com.mycompany.tictactoeserver.domain.server;
 
-import com.mycompany.tictactoeserver.domain.authentication.AuthenticationManager;
-import com.mycompany.tictactoeserver.domain.communication.Message;
-import com.mycompany.tictactoeserver.domain.exception.*;
+import com.mycompany.tictactoeserver.domain.services.communication.MessageRouter;
 import com.mycompany.tictactoeserver.domain.utils.callbacks.PlayerHandlerCallback;
+import com.mycompany.tictactoeserver.domain.utils.exception.ExceptionHandlerMiddleware;
+import com.mycompany.tictactoeserver.domain.utils.exception.PlayerSendMessageException;
+import com.mycompany.tictactoeserver.domain.utils.exception.ServerInterruptException;
+
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
 import java.util.Vector;
-import org.json.JSONObject;
 
-public class GameServerManager implements ServerManager {
+public class GameServerManager {
     private final Vector<PlayerConnectionHandler> players = new Vector<>();
     public Thread thread;
     private final ServerRunnable runnable;
@@ -25,128 +26,78 @@ public class GameServerManager implements ServerManager {
         return instance;
     }
 
-    private GameServerManager()
-    {
-        runnable = new ServerRunnable(this::addListener);
+    private GameServerManager() {
+        runnable = new ServerRunnable(this::addPlayer);
         thread = new Thread(runnable);
 
         thread.start();
     }
 
-    public boolean isRunning()
-    {
+    public boolean isRunning() {
         return runnable.isRunning();
     }
 
-    @Override
-    public synchronized void start()
-    {
-        System.out.println("Starting GameServerManager");
-        runnable.toggleRunning();
+    public void start() {
+        synchronized (lock) {
+            System.out.println("Starting GameServerManager");
+            runnable.toggleRunning();
+        }
     }
 
-    @Override
     public void stop() {
         System.out.println("Stopping GameServerManager");
         runnable.toggleRunning();
 
-        Vector<PlayerConnectionHandler> snapshot;
+        Vector<PlayerConnectionHandler> copy;
         synchronized (lock) {
-            snapshot = new Vector<>(players);
+            copy = new Vector<>(players);
             players.clear();
         }
 
-        for (PlayerConnectionHandler p : snapshot) {
+        for (PlayerConnectionHandler p : copy) {
             p.close();
         }
     }
 
 
-
-
-
-    @Override
-    public void broadcastMessage(String message) throws PlayerSendMessageException
-    {
+    public void broadcastMessage(String message) throws PlayerSendMessageException {
         synchronized (lock) {
-            for (PlayerConnectionHandler player : players)
-            {
+            for (PlayerConnectionHandler player : players) {
                 sendMessage(message, player);
             }
         }
 
     }
 
-    @Override
-    public void sendMessage(String message, PlayerConnectionHandler player) throws PlayerSendMessageException
-    {
+    public void sendMessage(String message, PlayerConnectionHandler player) throws PlayerSendMessageException {
         player.sendMessageToPlayer(message);
 
     }
 
-    @Override
-    public void parseMessage(String message, PlayerConnectionHandler player)
-    {
-        mapFunction(message, player);
-    }
+    public void onReceiveMessage(String message, PlayerConnectionHandler sender) {
+        MessageRouter router = MessageRouter.getInstance();
 
-    @Override
-    public void addListener(PlayerConnectionHandler player) {
-        synchronized (lock) { players.add(player); }
-    }
-
-    @Override
-    public void removeListener(PlayerConnectionHandler player) {
-        synchronized (lock) { players.remove(player); }
-    }
-
-    private void mapFunction(String message, PlayerConnectionHandler player)
-    {
-        JSONObject jsonMessage= new JSONObject( message);
-        String functoin = jsonMessage.getString("function");
-        String username = jsonMessage.getString("username");
-        String password = jsonMessage.getString("password");
-        AuthenticationManager auth = AuthenticationManager.getInstance();
-        Message msg = new Message(); 
-        switch (functoin)
-        {
-            
-            case "login":
-            {
-                msg = auth.login(username, password);
-                break;
-            }
-            case "register":
-            {
-                
-                  msg=auth.register(username, password);
-                  System.out.println("Assign message");
-                  break;
-            }
-            
-            default:
-                try
-                {
-                    broadcastMessage(message);
-                }
-                catch (PlayerSendMessageException e)
-                {
-                    throw new RuntimeException(e);
-                }
-
-        }
         try {
-            JSONObject obj = new JSONObject(msg);
-            System.out.println(msg.getData().toString());
-            player.sendMessageToPlayer(obj.toString());
-        } catch (PlayerSendMessageException ex) {
-            System.getLogger(GameServerManager.class.getName()).log(System.Logger.Level.ERROR, (String) null, ex);
+            router.navigateMessage(message, sender);
+        } catch (PlayerSendMessageException e) {
+            ExceptionHandlerMiddleware.getInstance().handleException(e);
+        }
+    }
+
+    public void addPlayer(PlayerConnectionHandler player) {
+        synchronized (lock) {
+            players.add(player);
+        }
+    }
+
+    public void removePlayer(PlayerConnectionHandler player) {
+        synchronized (lock) {
+            players.remove(player);
         }
     }
 }
 
-class ServerRunnable implements Runnable
-{
+class ServerRunnable implements Runnable {
     private volatile ServerSocket serverSocket;
     PlayerHandlerCallback onAdd;
 
@@ -154,26 +105,20 @@ class ServerRunnable implements Runnable
 
     int PORT = 4321;
 
-    ServerRunnable(PlayerHandlerCallback onAdd)
-    {
+    ServerRunnable(PlayerHandlerCallback onAdd) {
         this.onAdd = onAdd;
 
-        try
-        {
+        try {
             serverSocket = new ServerSocket(PORT);
-        }
-        catch (IOException e)
-        {
-            ServerInterruptException interruptException =  new ServerInterruptException(e.getStackTrace());
+        } catch (IOException e) {
+            ServerInterruptException interruptException = new ServerInterruptException(e.getStackTrace());
             ExceptionHandlerMiddleware.getInstance().handleException(interruptException);
         }
     }
 
-    public synchronized void toggleRunning()
-    {
+    public synchronized void toggleRunning() {
         isRunning = !isRunning;
-        if(isRunning)
-        {
+        if (isRunning) {
             notify();
             System.out.println("Server Notified");
         }
@@ -184,17 +129,12 @@ class ServerRunnable implements Runnable
     }
 
     @Override
-    public void run()
-    {
+    public void run() {
 
-        while (true)
-        {
-            try
-            {
-                synchronized (this)
-                {
-                    if (!isRunning)
-                    {
+        while (true) {
+            try {
+                synchronized (this) {
+                    if (!isRunning) {
                         System.out.println("Server Waiting...");
                         serverSocket.close();
                         wait();
@@ -204,22 +144,15 @@ class ServerRunnable implements Runnable
 
                 System.out.println("Server Accepting...");
                 Socket clientSocket = serverSocket.accept();
-                if(isRunning)
-                {
+                if (isRunning) {
                     onAdd.call(new PlayerConnectionHandler(clientSocket));
                     System.out.println("Client Connected: " + clientSocket.getInetAddress().getHostAddress());
-                }
-                else
-                {
+                } else {
                     clientSocket.close();
                 }
-            }
-            catch (SocketException | InterruptedException ex)
-            {
+            } catch (SocketException | InterruptedException ex) {
                 System.out.println("Server Closed, Exception: ---> " + ex.getMessage());
-            }
-            catch (IOException e)
-            {
+            } catch (IOException e) {
                 ServerInterruptException customException = new ServerInterruptException(e.getStackTrace());
                 ExceptionHandlerMiddleware.getInstance().handleException(customException);
             }

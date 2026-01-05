@@ -1,9 +1,12 @@
 package com.mycompany.tictactoeserver.domain.server;
 
 import com.mycompany.tictactoeserver.datasource.model.Player;
-import com.mycompany.tictactoeserver.domain.exception.*;
 import com.mycompany.tictactoeserver.domain.utils.callbacks.StringCallback;
 import com.mycompany.tictactoeserver.domain.utils.callbacks.VoidCallback;
+import com.mycompany.tictactoeserver.domain.utils.exception.ExceptionHandlerMiddleware;
+import com.mycompany.tictactoeserver.domain.utils.exception.PlayerConnectionException;
+import com.mycompany.tictactoeserver.domain.utils.exception.PlayerSendMessageException;
+
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -16,50 +19,42 @@ public class PlayerConnectionHandler {
     private final PlayerRunnable runnable;
 
     PlayerConnectionHandler(Socket socket) {
-        runnable = new PlayerRunnable(socket, this::receiveMessageFromPlayer, this::onCloseRunnable );
+        runnable = new PlayerRunnable(socket, this::receiveMessageFromPlayer, this::onCloseRunnable);
 
         Thread thread = new Thread(runnable);
 
         thread.start();
     }
 
-    public void sendMessageToPlayer(String message) throws PlayerSendMessageException
-    {
+    public void sendMessageToPlayer(String message) throws PlayerSendMessageException {
         runnable.sendMessageToSocket(message);
     }
 
-    public void receiveMessageFromPlayer(String message)
-    {
-        serverManager.parseMessage(message, this);
+    public void receiveMessageFromPlayer(String message) {
+        serverManager.onReceiveMessage(message, this);
     }
 
-    public void close()
-    {
+    public void close() {
         runnable.setRunning(false);
         runnable.close();
     }
 
-    private void onCloseRunnable()
-    {
-        serverManager.removeListener(this);
+    private void onCloseRunnable() {
+        serverManager.removePlayer(this);
     }
 
 
-
-    public Player getPlayer()
-    {
+    public Player getPlayer() {
         return player;
     }
 
-    public void setPlayer(Player player)
-    {
+    public void setPlayer(Player player) {
         this.player = player;
     }
 }
 
 
-class PlayerRunnable implements Runnable
-{
+class PlayerRunnable implements Runnable {
     private final Socket socket;
     private DataInputStream in;
     private DataOutputStream out;
@@ -69,19 +64,15 @@ class PlayerRunnable implements Runnable
 
     private volatile boolean isRunning = true;
 
-    PlayerRunnable(Socket socket, StringCallback onReceive, VoidCallback onClose)
-    {
+    PlayerRunnable(Socket socket, StringCallback onReceive, VoidCallback onClose) {
         this.onReceive = onReceive;
         this.onClose = onClose;
         this.socket = socket;
 
-        try
-        {
+        try {
             this.in = new DataInputStream(socket.getInputStream());
             this.out = new DataOutputStream(socket.getOutputStream());
-        }
-        catch (IOException e)
-        {
+        } catch (IOException e) {
             close();
             PlayerConnectionException connectionException = new PlayerConnectionException(e.getStackTrace());
             ExceptionHandlerMiddleware.getInstance().handleException(connectionException);
@@ -89,27 +80,20 @@ class PlayerRunnable implements Runnable
         }
     }
 
-    public synchronized void setRunning(boolean isRunning)
-    {
+    public synchronized void setRunning(boolean isRunning) {
         this.isRunning = isRunning;
-        if(this.isRunning)
-        {
+        if (this.isRunning) {
             notify();
             System.out.println("Notified");
         }
     }
 
     @Override
-    public void run()
-    {
-        try
-        {
-            while (true)
-            {
-                synchronized (this)
-                {
-                    if (!isRunning)
-                    {
+    public void run() {
+        try {
+            while (true) {
+                synchronized (this) {
+                    if (!isRunning) {
                         System.out.println("Player Waiting...");
                         wait();
                     }
@@ -119,10 +103,7 @@ class PlayerRunnable implements Runnable
                 System.out.println("in: ---> " + msg);
                 onReceive.call(msg);
             }
-        }
-
-        catch (InterruptedException | IOException ex)
-        {
+        } catch (InterruptedException | IOException ex) {
             onClose.call();
             close();
             System.out.println("Client Disconnected");
@@ -139,24 +120,20 @@ class PlayerRunnable implements Runnable
         }
     }
 
-    public void close()
-    {
-        try
-        {
+    public void close() {
+        try {
             if (in != null) in.close();
+        } catch (IOException ignored) {
         }
-        catch (IOException ignored) {}
 
-        try
-        {
+        try {
             if (out != null) out.close();
+        } catch (IOException ignored) {
         }
-        catch (IOException ignored) {}
 
-        try
-        {
+        try {
             if (socket != null && !socket.isClosed()) socket.close();
+        } catch (IOException ignored) {
         }
-        catch (IOException ignored) {}
     }
 }

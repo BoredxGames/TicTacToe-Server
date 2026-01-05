@@ -2,9 +2,9 @@ package com.mycompany.tictactoeserver.datasource.database.dao;
 
 import com.mycompany.tictactoeserver.datasource.database.Database;
 import com.mycompany.tictactoeserver.datasource.model.Session;
-import com.mycompany.tictactoeserver.domain.exception.ActiveSessionExistsException;
-import com.mycompany.tictactoeserver.domain.exception.SessionNotFoundException;
-import com.mycompany.tictactoeserver.domain.exception.DataAccessException;
+import com.mycompany.tictactoeserver.domain.utils.exception.ActiveSessionExistsException;
+import com.mycompany.tictactoeserver.domain.utils.exception.SessionNotFoundException;
+import com.mycompany.tictactoeserver.domain.utils.exception.DataAccessException;
 
 import java.sql.*;
 import java.time.LocalDateTime;
