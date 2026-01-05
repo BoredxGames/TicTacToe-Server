@@ -13,16 +13,15 @@ import java.util.List;
  *
  * @author Tasneem
  */
-public class StatisticsManagerImpl implements StatisticsManager {
+public class StatisticsService {
     private final PlayerSessionService playerSessionService;
     private final PlayerService playerService;
 
-    public StatisticsManagerImpl(PlayerService playerService) {
+    public StatisticsService(PlayerService playerService) {
         this.playerService = playerService;
         this.playerSessionService = new PlayerSessionService();
     }
 
-    @Override
     public List<ActivityPoint> getAllPlayerSessions() {
         List<Session> sessions = playerSessionService.getAllPlayerSessions();
 
@@ -30,9 +29,6 @@ public class StatisticsManagerImpl implements StatisticsManager {
         return activityPoints;
     }
 
-
-
-    @Override
     public List<PlayerEntity> getLeaderboard() {
         List<Player> players = playerService.getAllPlayers();
 
@@ -50,7 +46,6 @@ public class StatisticsManagerImpl implements StatisticsManager {
         return leaderboard;
     }
 
-    @Override
     public int getTotalPlayersCount() {
         return playerService.getAllPlayers().size();
     }
