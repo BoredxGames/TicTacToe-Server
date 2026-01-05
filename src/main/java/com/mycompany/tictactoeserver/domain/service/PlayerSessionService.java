@@ -1,8 +1,10 @@
-package com.mycompany.tictactoeserver.domain.statistics;
+package com.mycompany.tictactoeserver.domain.service;
 
 import com.mycompany.tictactoeserver.datasource.database.dao.SessionDAO;
 import com.mycompany.tictactoeserver.datasource.model.Session;
 import com.mycompany.tictactoeserver.domain.exception.*;
+
+import java.util.List;
 
 public class PlayerSessionService {
     private final SessionDAO sessionDao;
@@ -11,6 +13,16 @@ public class PlayerSessionService {
     public PlayerSessionService() {
         this.sessionDao = new SessionDAO();
         this.exceptionHandler = ExceptionHandlerMiddleware.getInstance();
+    }
+
+    public List<Session> getAllPlayerSessions() {
+        try {
+            return sessionDao.getAllSessions();
+
+        } catch (SessionNotFoundException e) {
+            exceptionHandler.handleException(e);
+        }
+        return List.of();
     }
 
     public boolean startPlayerSession(String playerId) {
