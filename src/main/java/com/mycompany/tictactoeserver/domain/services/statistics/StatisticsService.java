@@ -55,4 +55,8 @@ public class StatisticsService {
     public int getOnlinePlayersCount() {
         return gameServerManager.getOnlinePlayersCount();
     }
+
+    public int getOfflinePlayersCount() {
+        return getTotalPlayersCount() - getOnlinePlayersCount();
+    }
 }

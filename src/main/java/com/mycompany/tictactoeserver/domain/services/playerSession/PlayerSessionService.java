@@ -25,30 +25,27 @@ public class PlayerSessionService {
         return List.of();
     }
 
-    public boolean startPlayerSession(String playerId) {
+    public void startPlayerSession(String playerId) {
         try {
             Session session = new Session(playerId);
-            return sessionDao.startSession(session);
+            sessionDao.startSession(session);
 
         } catch (ActiveSessionExistsException e) {
             String[] data = {playerId, e.getMessage()};
             exceptionHandler.handleException(e, data);
-            return false;
         }
     }
 
-    public boolean endPlayerSession(String playerId) {
+    public void endPlayerSession(String playerId) {
         try {
-            return sessionDao.endSessionByPlayerId(playerId);
+            sessionDao.endSessionByPlayerId(playerId);
 
         } catch (SessionNotFoundException e) {
             String[] data = {playerId};
             exceptionHandler.handleException(e, data);
-            return false;
 
         } catch (DataAccessException e) {
             exceptionHandler.handleException(e);
-            return false;
         }
     }
 
