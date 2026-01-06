@@ -1,25 +1,24 @@
 package com.mycompany.tictactoeserver.domain.entity;
 
-import java.time.LocalDateTime;
 /**
  *
  * @author Tasneem
  */
 public class ActivityPoint {
-    private LocalDateTime timestamp;  
+    private int hour;
     private int playerCount;          
     
-    public ActivityPoint(LocalDateTime timestamp, int playerCount) {
-        this.timestamp = timestamp;
+    public ActivityPoint(int hour, int playerCount) {
+        this.hour = hour;
         this.playerCount = playerCount;
     }
     
-    public LocalDateTime getTimestamp() {
-        return timestamp;
+    public int getHour() {
+        return hour;
     }
     
-    public void setTimestamp(LocalDateTime timestamp) {
-        this.timestamp = timestamp;
+    public void setHour(int hour) {
+        this.hour = hour;
     }
     
     public int getPlayerCount() {

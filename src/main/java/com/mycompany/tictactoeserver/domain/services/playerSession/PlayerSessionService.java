@@ -4,6 +4,7 @@ import com.mycompany.tictactoeserver.datasource.database.dao.SessionDAO;
 import com.mycompany.tictactoeserver.datasource.model.Session;
 import com.mycompany.tictactoeserver.domain.utils.exception.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 public class PlayerSessionService {
@@ -60,6 +61,15 @@ public class PlayerSessionService {
         } catch (DataAccessException e) {
             exceptionHandler.handleException(e);
             return 0;
+        }
+    }
+
+    public List<Session> getSessionsByDateRange(LocalDateTime startDate, LocalDateTime endDate) {
+        try{
+            return sessionDao.getSessionsByDateRange(startDate, endDate);
+        } catch (DataAccessException e) {
+            exceptionHandler.handleException(e);
+            return List.of();
         }
     }
 }

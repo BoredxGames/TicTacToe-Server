@@ -8,6 +8,7 @@ import com.mycompany.tictactoeserver.domain.server.GameServerManager;
 import com.mycompany.tictactoeserver.domain.services.player.PlayerService;
 import com.mycompany.tictactoeserver.domain.services.playerSession.PlayerSessionService;
 
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.List;
 /**
@@ -25,10 +26,36 @@ public class StatisticsService {
         this.playerSessionService = new PlayerSessionService();
     }
 
-    public List<ActivityPoint> getAllPlayerSessions() {
-        List<Session> sessions = playerSessionService.getAllPlayerSessions();
+    public List<ActivityPoint> getOnlinePlayersCountPerHour() {
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime twentyFourHoursAgo = now.minusHours(24);
 
-        return new ArrayList<>();
+        List<Session> recentSessions = playerSessionService.getSessionsByDateRange(twentyFourHoursAgo, now);
+
+        if (recentSessions.isEmpty()) {
+            return new ArrayList<>();
+        }
+
+        List<ActivityPoint> activityPoints = new ArrayList<>();
+
+        for (int i = 0; i < 24; i++) {
+            LocalDateTime hourStart = twentyFourHoursAgo.plusHours(i).withMinute(0).withSecond(0).withNano(0);
+            LocalDateTime hourEnd = hourStart.plusHours(1);
+            int playersOnline = 0;
+
+            for (Session session : recentSessions) {
+                LocalDateTime sessionStart = session.getStartTime();
+                LocalDateTime sessionEnd = session.getEndTime() != null ? session.getEndTime() : now;
+
+                if (sessionStart.isBefore(hourEnd) && sessionEnd.isAfter(hourStart)) {
+                    playersOnline++;
+                }
+            }
+
+            activityPoints.add(new ActivityPoint(hourStart.getHour(), playersOnline));
+        }
+
+        return activityPoints;
     }
 
     public List<PlayerEntity> getLeaderboard() {

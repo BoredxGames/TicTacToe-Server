@@ -21,7 +21,7 @@ public class SessionDAO {
         this.connection = Database.getInstance().getConnection();
     }
 
-    public boolean startSession(Session session) throws ActiveSessionExistsException {
+    public void startSession(Session session) throws ActiveSessionExistsException {
         Session existingSession = getActiveSessionByPlayerId(session.getPlayerId());
         if (existingSession != null) {
             throw new ActiveSessionExistsException();
@@ -34,11 +34,9 @@ public class SessionDAO {
             preparedStatement.setTimestamp(3, Timestamp.valueOf(session.getStartTime()));
             preparedStatement.setTimestamp(4, session.getEndTime() != null ? Timestamp.valueOf(session.getEndTime()) : null);
 
-            int rowsAffected = preparedStatement.executeUpdate();
-            return rowsAffected > 0;
+            preparedStatement.executeUpdate();
         } catch (SQLException e) {
             System.err.println("Error starting session: " + e.getMessage());
-            return false;
         }
     }
 
@@ -58,7 +56,7 @@ public class SessionDAO {
         }
     }
 
-    public boolean endSessionByPlayerId(String playerId) throws SessionNotFoundException, DataAccessException {
+    public void endSessionByPlayerId(String playerId) throws SessionNotFoundException, DataAccessException {
         Session activeSession = getActiveSessionByPlayerId(playerId);
         if (activeSession == null) {
             throw new SessionNotFoundException();
@@ -70,7 +68,6 @@ public class SessionDAO {
             preparedStatement.setString(2, activeSession.getId());
 
             int rowsAffected = preparedStatement.executeUpdate();
-            return rowsAffected > 0;
         } catch (SQLException e) {
             throw new DataAccessException(e.getStackTrace());
         }
