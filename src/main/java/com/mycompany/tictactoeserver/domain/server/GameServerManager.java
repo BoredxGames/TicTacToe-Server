@@ -5,7 +5,6 @@ import com.mycompany.tictactoeserver.domain.utils.callbacks.PlayerHandlerCallbac
 import com.mycompany.tictactoeserver.domain.utils.exception.ExceptionHandlerMiddleware;
 import com.mycompany.tictactoeserver.domain.utils.exception.PlayerSendMessageException;
 import com.mycompany.tictactoeserver.domain.utils.exception.ServerInterruptException;
-
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -75,12 +74,12 @@ public class GameServerManager {
     }
 
     public void onReceiveMessage(String message, PlayerConnectionHandler sender) {
-        MessageRouter router = MessageRouter.getInstance();
-
         try {
+            MessageRouter router = MessageRouter.getInstance();
+            System.out.println("testingggggggggg");
             router.navigateMessage(message, sender);
-        } catch (PlayerSendMessageException e) {
-            ExceptionHandlerMiddleware.getInstance().handleException(e);
+        } catch (PlayerSendMessageException ex) {
+            System.getLogger(GameServerManager.class.getName()).log(System.Logger.Level.ERROR, (String) null, ex);
         }
     }
 
@@ -145,8 +144,11 @@ class ServerRunnable implements Runnable {
                 System.out.println("Server Accepting...");
                 Socket clientSocket = serverSocket.accept();
                 if (isRunning) {
-                    onAdd.call(new PlayerConnectionHandler(clientSocket));
+                    PlayerConnectionHandler player = new PlayerConnectionHandler(clientSocket);
+                    onAdd.call(player);
                     System.out.println("Client Connected: " + clientSocket.getInetAddress().getHostAddress());
+                    
+                   
                 } else {
                     clientSocket.close();
                 }

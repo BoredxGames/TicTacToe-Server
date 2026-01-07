@@ -2,19 +2,22 @@ package com.mycompany.tictactoeserver.domain.services.authentication;
 
 import com.mycompany.tictactoeserver.datasource.database.dao.PlayerDAO;
 import com.mycompany.tictactoeserver.datasource.model.Player;
+import com.mycompany.tictactoeserver.domain.entity.AuthRequestEntity;
 import com.mycompany.tictactoeserver.domain.entity.AuthResponseEntity;
 import com.mycompany.tictactoeserver.domain.services.communication.Action;
-import com.mycompany.tictactoeserver.domain.services.communication.Header;
 import com.mycompany.tictactoeserver.domain.services.communication.Message;
 import com.mycompany.tictactoeserver.domain.services.communication.MessageType;
 import com.mycompany.tictactoeserver.domain.services.security.ServerSecurityManager;
 import com.mycompany.tictactoeserver.domain.utils.exception.ExceptionHandlerMiddleware;
 import com.mycompany.tictactoeserver.domain.utils.exception.HashingException;
 import com.mycompany.tictactoeserver.domain.utils.exception.ServerInterruptException;
-import org.json.JSONObject;
 
+/**
+ *
+ * @author Hazem
+ *
+ */
 public class AuthenticationService {
-
 
     private static AuthenticationService instance;
     private final PlayerDAO playerDao;
@@ -24,81 +27,75 @@ public class AuthenticationService {
     }
 
     public static AuthenticationService getInstance() {
-        if (instance == null)
+        if (instance == null) {
             instance = new AuthenticationService();
-
+        }
         return instance;
     }
 
+    public Message register(AuthRequestEntity credential) {
+        Message response;
 
-    public Message register(String username, String plainTextPassword) {
+        System.out.println(credential.getUserName() + "  " + credential.getPassword());
+        if (credential.getUserName() == null || credential.getPassword() == null) {
+            response = Message.createMessage(MessageType.ERROR, Action.USERNAME_NOT_FOUND, credential);
+        }
 
-        Player player = playerDao.findByUsername(username);
+        Player player = playerDao.findByUsername(credential.getUserName());
 
         if (player != null) {
-            JSONObject json = new JSONObject();
-            json.put("error", "Username already exists");
-            return new Message(new Header(MessageType.ERROR, Action.REGISTER), json);
+
+            response = Message.createMessage(MessageType.ERROR, Action.USERNAME_ALREADY_EXIST, credential);
         }
 
-        AuthResponseEntity responseEntity;
-
         try {
-
-            String hashedPassword = ServerSecurityManager.hashText(plainTextPassword);
-            Player newPlayer = new Player(username, hashedPassword);
+            String hashedPassword = ServerSecurityManager.hashText(credential.getPassword());
+            Player newPlayer = new Player(credential.getUserName(), hashedPassword);
             playerDao.insert(newPlayer);
-            responseEntity = new AuthResponseEntity(newPlayer);
+
+            AuthResponseEntity responseEntity = new AuthResponseEntity(newPlayer);
+            response = Message.createMessage(MessageType.RESPONSE, Action.REGISTERATION_SUCCESS, responseEntity);
 
         } catch (HashingException ex) {
-
             ServerInterruptException customException = new ServerInterruptException(ex.getStackTrace());
             ExceptionHandlerMiddleware.getInstance().handleException(customException);
 
-            JSONObject json = new JSONObject();
-            json.put("error", "Internal Server Error");
-            return new Message(new Header(MessageType.ERROR, Action.REGISTER), json);
-
+            response = Message.createMessage(MessageType.ERROR, Action.INTERNAL_SERVER_ERROR, credential);
         }
-
-
-        return new Message(new Header(MessageType.RESPONSE, Action.REGISTER), responseEntity.toJson());
-
+        return response;
     }
 
-    public Message login(String username, String plainTextPassword) {
+    public Message login(AuthRequestEntity credential) {
+        Message response;
+        if (credential == null || credential.getUserName() == null || credential.getPassword() == null) {
+            response = Message.createMessage(MessageType.ERROR, Action.USERNAME_NOT_FOUND, credential);
+        }
 
         try {
-
-            Player player = playerDao.findByUsername(username);
+            Player player = playerDao.findByUsername(credential.getUserName());
 
             if (player == null) {
-                JSONObject json = new JSONObject();
-                json.put("error", "Invalid Credentials");
-                return new Message(new Header(MessageType.ERROR, Action.LOGIN), json);
+
+                response = Message.createMessage(MessageType.ERROR, Action.USERNAME_NOT_FOUND, credential);
+                return response;
             }
 
-
-            String hashedPassword = ServerSecurityManager.hashText(plainTextPassword);
+            String hashedPassword = ServerSecurityManager.hashText(credential.getPassword());
             if (!hashedPassword.equals(player.getPassword())) {
-                JSONObject json = new JSONObject();
-                json.put("error", "Invalid Credentials");
-                return new Message(new Header(MessageType.ERROR, Action.LOGIN), json);
+              
+                response =  Message.createMessage(MessageType.ERROR, Action.INVALID_CREDENTIAL, credential);
             }
-
 
             AuthResponseEntity responseEntity = new AuthResponseEntity(player);
-            return new Message(new Header(MessageType.RESPONSE, Action.LOGIN), responseEntity.toJson());
+            response = Message.createMessage(MessageType.RESPONSE, Action.LOGIN_SUCCESS, responseEntity);
 
         } catch (HashingException ex) {
             ServerInterruptException customException = new ServerInterruptException(ex.getStackTrace());
             ExceptionHandlerMiddleware.getInstance().handleException(customException);
 
-            JSONObject json = new JSONObject();
-            json.put("error", "Internal Server Error");
-            return new Message(new Header(MessageType.ERROR, Action.LOGIN), json);
+            response = Message.createMessage(MessageType.ERROR, Action.INTERNAL_SERVER_ERROR, credential);
+
         }
+        return response;
     }
-
-
 }

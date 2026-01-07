@@ -5,9 +5,13 @@ public enum Action {
     REGISTER(20),
     REQUEST_GAME(30),
     GAME_RESPONSE(40),
-    SEND_GAME_UPDATE(50);
-
-
+    SEND_GAME_UPDATE(50),
+    USERNAME_NOT_FOUND(60),
+    REGISTERATION_SUCCESS(70),
+    INTERNAL_SERVER_ERROR(80),
+    INVALID_CREDENTIAL(90),
+    LOGIN_SUCCESS(100),
+    USERNAME_ALREADY_EXIST(110);
     final int id;
 
     Action(int id) {
@@ -27,6 +31,14 @@ public enum Action {
 
         return null;
     }
-
+ public static Action fromString(String msgType)
+    {
+        return switch (msgType.toLowerCase()) {
+            case "login" -> Action.LOGIN;
+           
+     
+            default -> throw new AssertionError();
+        };
+     }
 
 }
