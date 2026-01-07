@@ -1,5 +1,6 @@
 package com.mycompany.tictactoeserver.domain.services.statistics;
 
+import com.mycompany.tictactoeserver.datasource.database.dao.PlayerDAO;
 import com.mycompany.tictactoeserver.datasource.model.Player;
 import com.mycompany.tictactoeserver.datasource.model.Session;
 import com.mycompany.tictactoeserver.domain.entity.ActivityPoint;
@@ -20,9 +21,9 @@ public class StatisticsService {
     private final PlayerService playerService;
     private final GameServerManager gameServerManager;
 
-    public StatisticsService(PlayerService playerService, GameServerManager gameServerManager, GameServerManager gameServerManager1) {
-        this.playerService = playerService;
-        this.gameServerManager = gameServerManager1;
+    public StatisticsService() {
+        this.playerService = new PlayerService(new PlayerDAO());
+        this.gameServerManager = GameServerManager.getInstance();
         this.playerSessionService = new PlayerSessionService();
     }
 
