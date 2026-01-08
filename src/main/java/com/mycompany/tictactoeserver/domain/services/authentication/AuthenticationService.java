@@ -7,6 +7,7 @@ import com.mycompany.tictactoeserver.domain.services.communication.Action;
 import com.mycompany.tictactoeserver.domain.services.communication.Header;
 import com.mycompany.tictactoeserver.domain.services.communication.Message;
 import com.mycompany.tictactoeserver.domain.services.communication.MessageType;
+import com.mycompany.tictactoeserver.domain.services.playerSession.PlayerSessionService;
 import com.mycompany.tictactoeserver.domain.services.security.ServerSecurityManager;
 import com.mycompany.tictactoeserver.domain.utils.exception.ExceptionHandlerMiddleware;
 import com.mycompany.tictactoeserver.domain.utils.exception.HashingException;
@@ -18,9 +19,11 @@ public class AuthenticationService {
 
     private static AuthenticationService instance;
     private final PlayerDAO playerDao;
+    private final PlayerSessionService playerSessionService;
 
     private AuthenticationService() {
         this.playerDao = new PlayerDAO();
+        this.playerSessionService = new PlayerSessionService();
     }
 
     public static AuthenticationService getInstance() {
@@ -86,6 +89,7 @@ public class AuthenticationService {
                 return new Message(new Header(MessageType.ERROR, Action.LOGIN), json);
             }
 
+            playerSessionService.startPlayerSession(player.getId());
 
             AuthResponseEntity responseEntity = new AuthResponseEntity(player);
             return new Message(new Header(MessageType.RESPONSE, Action.LOGIN), responseEntity.toJson());

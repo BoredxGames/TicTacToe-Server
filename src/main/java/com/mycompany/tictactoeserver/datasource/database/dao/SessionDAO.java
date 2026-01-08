@@ -1,9 +1,9 @@
 package com.mycompany.tictactoeserver.datasource.database.dao;
 
 import com.mycompany.tictactoeserver.datasource.database.Database;
-import com.mycompany.tictactoeserver.datasource.model.ActivityPoint;
+import com.mycompany.tictactoeserver.datasource.model.Session;
 import com.mycompany.tictactoeserver.domain.utils.exception.ActiveSessionExistsException;
-import com.mycompany.tictactoeserver.domain.utils.exception.ActivityNotFoundException;
+import com.mycompany.tictactoeserver.domain.utils.exception.SessionNotFoundException;
 import com.mycompany.tictactoeserver.domain.utils.exception.DataAccessException;
 
 import java.sql.*;
@@ -14,43 +14,41 @@ import java.util.List;
 /**
  * @author Tasneem
  */
-public class ActivityDAO {
+public class SessionDAO {
     private final Connection connection;
 
-    public ActivityDAO() {
+    public SessionDAO() {
         this.connection = Database.getInstance().getConnection();
     }
 
-    public boolean startActivity(ActivityPoint activity) throws ActiveSessionExistsException {
-        ActivityPoint existingSession = getActiveSessionByPlayerId(activity.getPlayerId());
+    public void startSession(Session session) throws ActiveSessionExistsException {
+        Session existingSession = getActiveSessionByPlayerId(session.getPlayerId());
         if (existingSession != null) {
             throw new ActiveSessionExistsException();
         }
 
         String sql = "INSERT INTO ACTIVITY (id, player_id, start_date, end_date) VALUES (?, ?, ?, ?)";
         try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
-            preparedStatement.setString(1, activity.getId());
-            preparedStatement.setString(2, activity.getPlayerId());
-            preparedStatement.setTimestamp(3, Timestamp.valueOf(activity.getStartTime()));
-            preparedStatement.setTimestamp(4, activity.getEndTime() != null ? Timestamp.valueOf(activity.getEndTime()) : null);
+            preparedStatement.setString(1, session.getId());
+            preparedStatement.setString(2, session.getPlayerId());
+            preparedStatement.setTimestamp(3, Timestamp.valueOf(session.getStartTime()));
+            preparedStatement.setTimestamp(4, session.getEndTime() != null ? Timestamp.valueOf(session.getEndTime()) : null);
 
-            int rowsAffected = preparedStatement.executeUpdate();
-            return rowsAffected > 0;
+            preparedStatement.executeUpdate();
         } catch (SQLException e) {
-            System.err.println("Error starting activity: " + e.getMessage());
-            return false;
+            System.err.println("Error starting session: " + e.getMessage());
         }
     }
 
-    public boolean endActivity(ActivityPoint activity) throws ActivityNotFoundException, DataAccessException {
+    public boolean endSession(Session session) throws SessionNotFoundException, DataAccessException {
         String sql = "UPDATE ACTIVITY SET end_date = ? WHERE id = ?";
         try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
-            preparedStatement.setTimestamp(1, Timestamp.valueOf(activity.getEndTime()));
-            preparedStatement.setString(2, activity.getId());
+            preparedStatement.setTimestamp(1, Timestamp.valueOf(session.getEndTime()));
+            preparedStatement.setString(2, session.getId());
 
             int rowsAffected = preparedStatement.executeUpdate();
             if (rowsAffected == 0) {
-                throw new ActivityNotFoundException();
+                throw new SessionNotFoundException();
             }
             return true;
         } catch (SQLException e) {
@@ -58,10 +56,10 @@ public class ActivityDAO {
         }
     }
 
-    public boolean endActivityByPlayerId(String playerId) throws ActivityNotFoundException, DataAccessException {
-        ActivityPoint activeSession = getActiveSessionByPlayerId(playerId);
+    public void endSessionByPlayerId(String playerId) throws SessionNotFoundException, DataAccessException {
+        Session activeSession = getActiveSessionByPlayerId(playerId);
         if (activeSession == null) {
-            throw new ActivityNotFoundException();
+            throw new SessionNotFoundException();
         }
 
         String sql = "UPDATE ACTIVITY SET end_date = ? WHERE id = ?";
@@ -70,54 +68,53 @@ public class ActivityDAO {
             preparedStatement.setString(2, activeSession.getId());
 
             int rowsAffected = preparedStatement.executeUpdate();
-            return rowsAffected > 0;
         } catch (SQLException e) {
             throw new DataAccessException(e.getStackTrace());
         }
     }
 
-    public ActivityPoint getActivityById(String activityId) throws ActivityNotFoundException, DataAccessException {
+    public Session getSessionById(String sessionId) throws SessionNotFoundException, DataAccessException {
         String sql = "SELECT id, player_id, start_date, end_date FROM ACTIVITY WHERE id = ?";
         try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
-            preparedStatement.setString(1, activityId);
+            preparedStatement.setString(1, sessionId);
 
             try (ResultSet resultSet = preparedStatement.executeQuery()) {
                 if (resultSet.next()) {
-                    return mapResultSetToActivity(resultSet);
+                    return mapResultSetToSession(resultSet);
                 }
-                throw new ActivityNotFoundException();
+                throw new SessionNotFoundException();
             }
         } catch (SQLException e) {
             throw new DataAccessException(e.getStackTrace());
         }
     }
 
-    public List<ActivityPoint> getActivitiesByPlayerId(String playerId) throws DataAccessException {
+    public List<Session> getSessionByPlayerId(String playerId) throws DataAccessException {
         String sql = "SELECT id, player_id, start_date, end_date FROM ACTIVITY WHERE player_id = ? ORDER BY start_date DESC";
-        List<ActivityPoint> activities = new ArrayList<>();
+        List<Session> sessions = new ArrayList<>();
 
         try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
             preparedStatement.setString(1, playerId);
 
             try (ResultSet resultSet = preparedStatement.executeQuery()) {
                 while (resultSet.next()) {
-                    activities.add(mapResultSetToActivity(resultSet));
+                    sessions.add(mapResultSetToSession(resultSet));
                 }
             }
         } catch (SQLException e) {
             throw new DataAccessException(e.getStackTrace());
         }
-        return activities;
+        return sessions;
     }
 
-    public ActivityPoint getActiveSessionByPlayerId(String playerId) {
+    public Session getActiveSessionByPlayerId(String playerId) {
         String sql = "SELECT id, player_id, start_date, end_date FROM ACTIVITY WHERE player_id = ? AND end_date IS NULL ORDER BY start_date DESC LIMIT 1";
         try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
             preparedStatement.setString(1, playerId);
 
             try (ResultSet resultSet = preparedStatement.executeQuery()) {
                 if (resultSet.next()) {
-                    return mapResultSetToActivity(resultSet);
+                    return mapResultSetToSession(resultSet);
                 }
             }
         } catch (SQLException e) {
@@ -126,9 +123,9 @@ public class ActivityDAO {
         return null;
     }
 
-    public List<ActivityPoint> getActivitiesByDateRange(LocalDateTime startDate, LocalDateTime endDate) throws DataAccessException {
+    public List<Session> getSessionsByDateRange(LocalDateTime startDate, LocalDateTime endDate) throws DataAccessException {
         String sql = "SELECT id, player_id, start_date, end_date FROM ACTIVITY WHERE start_date BETWEEN ? AND ? ORDER BY start_date DESC";
-        List<ActivityPoint> activities = new ArrayList<>();
+        List<Session> sessions = new ArrayList<>();
 
         try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
             preparedStatement.setTimestamp(1, Timestamp.valueOf(startDate));
@@ -136,16 +133,16 @@ public class ActivityDAO {
 
             try (ResultSet resultSet = preparedStatement.executeQuery()) {
                 while (resultSet.next()) {
-                    activities.add(mapResultSetToActivity(resultSet));
+                    sessions.add(mapResultSetToSession(resultSet));
                 }
             }
         } catch (SQLException e) {
             throw new DataAccessException(e.getStackTrace());
         }
-        return activities;
+        return sessions;
     }
 
-    public int getActivityCountByPlayerId(String playerId) throws DataAccessException {
+    public int getSessionCountByPlayerId(String playerId) throws DataAccessException {
         String sql = "SELECT COUNT(*) FROM ACTIVITY WHERE player_id = ?";
         try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
             preparedStatement.setString(1, playerId);
@@ -165,14 +162,14 @@ public class ActivityDAO {
         return getActiveSessionByPlayerId(playerId) != null;
     }
 
-    public boolean deleteActivity(String activityId) throws ActivityNotFoundException, DataAccessException {
+    public boolean deleteSession(String sessionId) throws SessionNotFoundException, DataAccessException {
         String sql = "DELETE FROM ACTIVITY WHERE id = ?";
         try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
-            preparedStatement.setString(1, activityId);
+            preparedStatement.setString(1, sessionId);
 
             int rowsAffected = preparedStatement.executeUpdate();
             if (rowsAffected == 0) {
-                throw new ActivityNotFoundException();
+                throw new SessionNotFoundException();
             }
             return true;
         } catch (SQLException e) {
@@ -180,7 +177,7 @@ public class ActivityDAO {
         }
     }
 
-    public int deleteActivitiesByPlayerId(String playerId) throws DataAccessException {
+    public int deletePlayerSessions(String playerId) throws DataAccessException {
         String sql = "DELETE FROM ACTIVITY WHERE player_id = ?";
         try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
             preparedStatement.setString(1, playerId);
@@ -190,35 +187,35 @@ public class ActivityDAO {
         }
     }
 
-    public List<ActivityPoint> getAllSessions() throws ActivityNotFoundException {
+    public List<Session> getAllSessions() throws SessionNotFoundException {
         String sql = "SELECT id, player_id, start_date, end_date FROM ACTIVITY ORDER BY start_date DESC";
-        List<ActivityPoint> activities = new ArrayList<>();
+        List<Session> sessions = new ArrayList<>();
         try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
             try (ResultSet resultSet = preparedStatement.executeQuery()) {
                 while (resultSet.next()) {
-                    activities.add(mapResultSetToActivity(resultSet));
+                    sessions.add(mapResultSetToSession(resultSet));
                 }
             }
         } catch (SQLException e) {
-            throw new ActivityNotFoundException(e.getStackTrace());
+            throw new SessionNotFoundException(e.getStackTrace());
         }
-        return activities;
+        return sessions;
     }
 
-    public List<ActivityPoint> getAllActiveSessions() throws DataAccessException {
+    public List<Session> getAllActiveSessions() throws DataAccessException {
         String sql = "SELECT id, player_id, start_date, end_date FROM ACTIVITY WHERE end_date IS NULL ORDER BY start_date DESC";
-        List<ActivityPoint> activities = new ArrayList<>();
+        List<Session> sessions = new ArrayList<>();
 
         try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
             try (ResultSet resultSet = preparedStatement.executeQuery()) {
                 while (resultSet.next()) {
-                    activities.add(mapResultSetToActivity(resultSet));
+                    sessions.add(mapResultSetToSession(resultSet));
                 }
             }
         } catch (SQLException e) {
             throw new DataAccessException(e.getStackTrace());
         }
-        return activities;
+        return sessions;
     }
 
     public long getTotalPlayTimeMinutes(String playerId) throws DataAccessException {
@@ -245,20 +242,20 @@ public class ActivityDAO {
         return totalMinutes;
     }
 
-    private ActivityPoint mapResultSetToActivity(ResultSet resultSet) throws SQLException {
-        ActivityPoint activity = new ActivityPoint();
-        activity.setPlayerId(resultSet.getString("player_id"));
+    private Session mapResultSetToSession(ResultSet resultSet) throws SQLException {
+        Session session = new Session();
+        session.setPlayerId(resultSet.getString("player_id"));
 
         Timestamp startTimestamp = resultSet.getTimestamp("start_date");
         if (startTimestamp != null) {
-            activity.setStartTime(startTimestamp.toLocalDateTime());
+            session.setStartTime(startTimestamp.toLocalDateTime());
         }
 
         Timestamp endTimestamp = resultSet.getTimestamp("end_date");
         if (endTimestamp != null) {
-            activity.setEndTime(endTimestamp.toLocalDateTime());
+            session.setEndTime(endTimestamp.toLocalDateTime());
         }
 
-        return activity;
+        return session;
     }
 }
