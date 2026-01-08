@@ -33,7 +33,17 @@ public enum MessageType {
 
         return null;
     }
-
+    public static MessageType fromString(String msgType)
+    {
+        return switch (msgType.toLowerCase()) {
+            case "request" -> MessageType.REQUEST;
+            case "response"->MessageType.RESPONSE;
+            case "event"->MessageType.EVENT;
+            case "error"-> MessageType.ERROR;
+     
+            default -> throw new AssertionError();
+        };
+     }
 }
 
 
