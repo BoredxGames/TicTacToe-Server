@@ -94,6 +94,12 @@ public class GameServerManager {
             players.remove(player);
         }
     }
+
+    public int getOnlinePlayersCount() {
+        synchronized (lock) {
+            return players.size();
+        }
+    }
 }
 
 class ServerRunnable implements Runnable {
