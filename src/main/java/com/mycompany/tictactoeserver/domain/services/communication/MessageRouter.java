@@ -69,10 +69,8 @@ public class MessageRouter {
                 System.out.println(message.toString());
                 AuthRequestEntity auth = gson.fromJson(message.getData(), AuthRequestEntity.class);
            
-             Message response=   AuthenticationService.getInstance().login(auth);
-             if (response.getHeader().getAction() == Action.LOGIN_SUCCESS) {
-        sender.setStatus(PlayerStatus.ONLINE);
-    }
+             Message response= AuthenticationService.getInstance().login(auth,sender);
+             
              String msg = gson.toJson(response);
                 sender.sendMessageToPlayer(msg);
                 System.out.println(msg);

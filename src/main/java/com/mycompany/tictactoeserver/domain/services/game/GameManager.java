@@ -1,6 +1,7 @@
 package com.mycompany.tictactoeserver.domain.services.game;
 import com.google.gson.Gson;
 import com.mycompany.tictactoeserver.domain.entity.PlayerStatus;
+import com.mycompany.tictactoeserver.domain.server.GameServerManager;
 import com.mycompany.tictactoeserver.domain.server.PlayerConnectionHandler;
 import com.mycompany.tictactoeserver.domain.services.communication.*;
 import com.mycompany.tictactoeserver.domain.utils.exception.ExceptionHandlerMiddleware;
@@ -85,6 +86,8 @@ public class GameManager {
      
             requester.setStatus(PlayerStatus.PENDING);
             target.setStatus(PlayerStatus.PENDING);
+            GameServerManager.getInstance().broadcastPlayerList();
+
 
             synchronized (lock) {
                 pendingRequests.add(new GameRequest(requester, target));
@@ -143,7 +146,7 @@ target.sendMessageToPlayer(gson.toJson(eventToTarget));
 
             p1.setStatus(PlayerStatus.IN_GAME);
             p2.setStatus(PlayerStatus.IN_GAME);
-
+            GameServerManager.getInstance().broadcastPlayerList();
             synchronized (lock) {
                 activeRooms.add(room);
             }

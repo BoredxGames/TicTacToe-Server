@@ -5,6 +5,7 @@
 package com.mycompany.tictactoeserver.domain.server;
 
 import com.mycompany.tictactoeserver.datasource.model.Player;
+import com.mycompany.tictactoeserver.domain.entity.PlayerEntity;
 import java.util.Vector;
 
 /**
@@ -12,9 +13,13 @@ import java.util.Vector;
  * @author mahmoud 
  */
 public class AvailablePlayersInfo {
-    public Vector<Player> players;
+ public Vector<PlayerEntity> onlinePlayers;
+    public Vector<PlayerEntity> inGamePlayers;
+    public Vector<PlayerEntity> pendingPlayers;
 
-    public AvailablePlayersInfo(Vector<Player> players) {
-        this.players = players;
+    public AvailablePlayersInfo(Vector<PlayerEntity> online, Vector<PlayerEntity> inGame, Vector<PlayerEntity> pending) {
+        this.onlinePlayers = online;
+        this.inGamePlayers = inGame;
+        this.pendingPlayers = pending;
     }
 }
