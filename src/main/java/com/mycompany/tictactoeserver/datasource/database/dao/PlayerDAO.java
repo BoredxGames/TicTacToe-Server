@@ -108,6 +108,7 @@ public class PlayerDAO {
 
     private Player mapRow(ResultSet rs) throws SQLException {
         return new Player(
+                rs.getString("id"),
                 rs.getString("username"),
                 rs.getString("password"),
                 rs.getInt("score")
