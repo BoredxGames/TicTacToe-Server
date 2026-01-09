@@ -9,7 +9,7 @@ import java.util.Vector;
 
 /**
  *
- * @author moham
+ * @author mahmoud 
  */
 public class AvailablePlayersInfo {
     public Vector<Player> players;

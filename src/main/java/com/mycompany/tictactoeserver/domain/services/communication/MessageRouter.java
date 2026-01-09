@@ -93,7 +93,9 @@ public class MessageRouter {
             case REQUEST_GAME -> {
                 GameRequestInfo requestInfo = gson.fromJson(message.getData(), GameRequestInfo.class);
                 PlayerConnectionHandler target = GameServerManager.getInstance().getPlayerById(requestInfo.getTargetId());
-              GameManager.getInstance().requestGame(requestInfo, sender, target);
+    Message response = GameManager.getInstance().requestGame(requestInfo, sender, target);
+            sender.sendMessageToPlayer(gson.toJson(response));
+
 }
              
 
