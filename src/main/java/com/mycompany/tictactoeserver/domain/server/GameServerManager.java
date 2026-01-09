@@ -1,5 +1,8 @@
 package com.mycompany.tictactoeserver.domain.server;
 
+import com.mycompany.tictactoeserver.datasource.model.Player;
+import com.mycompany.tictactoeserver.domain.entity.PlayerStatus;
+import com.mycompany.tictactoeserver.domain.services.communication.*;
 import com.mycompany.tictactoeserver.domain.services.communication.MessageRouter;
 import com.mycompany.tictactoeserver.domain.utils.callbacks.PlayerHandlerCallback;
 import com.mycompany.tictactoeserver.domain.utils.exception.ExceptionHandlerMiddleware;
@@ -46,6 +49,27 @@ public class GameServerManager {
     }
     return null;
 }
+    public Vector<Player> getAvailablePlayerData() {
+    Vector<Player> available = new Vector<>();
+    synchronized (lock) {
+        for (PlayerConnectionHandler handler : players) {
+            if (handler.getStatus() == PlayerStatus.ONLINE && handler.getPlayer() != null) {
+                available.add(handler.getPlayer());
+            }
+        }
+    }
+    return available;
+}
+public Message getAvailablePlayersMessage(PlayerConnectionHandler requester) {
+    Vector<Player> availablePlayers = getAvailablePlayerData();
+    if (requester.getPlayer() != null) {
+        availablePlayers.removeIf(p -> p.getId().equals(requester.getPlayer().getId()));
+    }
+
+    AvailablePlayersInfo info = new AvailablePlayersInfo(availablePlayers);
+    return Message.createMessage(MessageType.RESPONSE, Action.GET_AVAILABLE_PLAYERS, info);
+}
+
 
 
     public void start() {

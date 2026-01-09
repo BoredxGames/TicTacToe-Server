@@ -3,6 +3,7 @@ package com.mycompany.tictactoeserver.domain.server;
 import com.google.gson.Gson;
 import com.mycompany.tictactoeserver.datasource.model.Player;
 import com.mycompany.tictactoeserver.domain.entity.AuthRequestEntity;
+import com.mycompany.tictactoeserver.domain.entity.PlayerStatus;
 import com.mycompany.tictactoeserver.domain.services.communication.Message;
 import com.mycompany.tictactoeserver.domain.utils.callbacks.StringCallback;
 import com.mycompany.tictactoeserver.domain.utils.callbacks.VoidCallback;
@@ -19,6 +20,8 @@ public class PlayerConnectionHandler {
     private static final GameServerManager serverManager = GameServerManager.getInstance();
     private Player player;
     private final PlayerRunnable runnable;
+    private PlayerStatus status = PlayerStatus.OFFLINE;
+
 
     PlayerConnectionHandler(Socket socket) {
         runnable = new PlayerRunnable(socket, this::receiveMessageFromPlayer, this::onCloseRunnable);
@@ -43,6 +46,7 @@ public class PlayerConnectionHandler {
     public void close() {
         runnable.setRunning(false);
         runnable.close();
+         setStatus(PlayerStatus.OFFLINE);
     }
 
     private void onCloseRunnable() {
@@ -56,6 +60,14 @@ public class PlayerConnectionHandler {
 
     public void setPlayer(Player player) {
         this.player = player;
+    }
+    public PlayerStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(PlayerStatus status) {
+        this.status = status;
+        System.out.println("Player " + (player != null ? player.getUsername() : "unknown") + " status: " + status);
     }
 }
 
