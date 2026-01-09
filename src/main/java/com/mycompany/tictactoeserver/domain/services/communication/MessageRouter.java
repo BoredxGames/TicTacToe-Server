@@ -2,10 +2,14 @@ package com.mycompany.tictactoeserver.domain.services.communication;
 
 import com.google.gson.Gson;
 import com.mycompany.tictactoeserver.domain.entity.AuthRequestEntity;
+import com.mycompany.tictactoeserver.domain.entity.PlayerStatus;
 import com.mycompany.tictactoeserver.domain.server.GameServerManager;
 import com.mycompany.tictactoeserver.domain.server.PlayerConnectionHandler;
 import com.mycompany.tictactoeserver.domain.services.authentication.AuthenticationService;
 import com.mycompany.tictactoeserver.domain.services.game.GameManager;
+import com.mycompany.tictactoeserver.domain.services.game.GameRequestInfo;
+import com.mycompany.tictactoeserver.domain.services.game.GameResponseInfo;
+import com.mycompany.tictactoeserver.domain.services.game.MoveInfo;
 import com.mycompany.tictactoeserver.domain.utils.exception.PlayerSendMessageException;
 
 public class MessageRouter {
@@ -37,7 +41,7 @@ public class MessageRouter {
                 //  server.sendMessage(msg.toJson().toString(), sender);
                 break;
             case RESPONSE:
-                // Handle response messages
+                handleResponse(response, sender);
                 break;
             case EVENT:
                 // Handle event messages
@@ -64,8 +68,11 @@ public class MessageRouter {
             case LOGIN -> {
                 System.out.println(message.toString());
                 AuthRequestEntity auth = gson.fromJson(message.getData(), AuthRequestEntity.class);
-
+           
              Message response=   AuthenticationService.getInstance().login(auth);
+             if (response.getHeader().getAction() == Action.LOGIN_SUCCESS) {
+        sender.setStatus(PlayerStatus.ONLINE);
+    }
              String msg = gson.toJson(response);
                 sender.sendMessageToPlayer(msg);
                 System.out.println(msg);
@@ -79,6 +86,16 @@ public class MessageRouter {
                 AuthenticationService.getInstance().register(auth);
 
             }
+            case GET_AVAILABLE_PLAYERS -> {
+    Message response = server.getAvailablePlayersMessage(sender);
+    sender.sendMessageToPlayer(gson.toJson(response));
+}
+            case REQUEST_GAME -> {
+                GameRequestInfo requestInfo = gson.fromJson(message.getData(), GameRequestInfo.class);
+                PlayerConnectionHandler target = GameServerManager.getInstance().getPlayerById(requestInfo.getTargetId());
+              GameManager.getInstance().requestGame(requestInfo, sender, target);
+}
+             
 
             default -> {
 //                System.out.println("Unknown Action: " + action);
@@ -86,5 +103,29 @@ public class MessageRouter {
             }
         };
     }
+    private void handleResponse(Message msg, PlayerConnectionHandler sender) throws PlayerSendMessageException {
+    Action action = msg.getHeader().getAction();
+    Message response;
 
+    switch (action) {
+
+        case GAME_RESPONSE -> {
+            GameResponseInfo requestInfo = gson.fromJson(msg.getData(), GameResponseInfo.class);
+            response = GameManager.getInstance().handleGameResponse(requestInfo, sender);
+            sender.sendMessageToPlayer(gson.toJson(response));
+        }
+
+        case SEND_GAME_UPDATE -> {
+            MoveInfo moveInfo = gson.fromJson(msg.getData(), MoveInfo.class);
+            response = GameManager.getInstance().forwardMove(moveInfo);
+            sender.sendMessageToPlayer(gson.toJson(response));
+        }
+
+        default -> {
+            response = new Message(new Header(MessageType.ERROR, action), "Unknown response action");
+            sender.sendMessageToPlayer(gson.toJson(response));
+        }
+    }
+
+}
 }

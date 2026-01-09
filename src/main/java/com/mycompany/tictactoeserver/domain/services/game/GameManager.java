@@ -1,110 +1,108 @@
 package com.mycompany.tictactoeserver.domain.services.game;
+import com.google.gson.Gson;
+import com.mycompany.tictactoeserver.domain.entity.PlayerStatus;
 import com.mycompany.tictactoeserver.domain.server.PlayerConnectionHandler;
 import com.mycompany.tictactoeserver.domain.services.communication.*;
 import com.mycompany.tictactoeserver.domain.utils.exception.ExceptionHandlerMiddleware;
 import com.mycompany.tictactoeserver.domain.utils.exception.ServerInterruptException;
-import org.json.JSONObject;
+
 import java.util.Vector;
 
 public class GameManager {
+
     private static GameManager instance;
     private final Vector<GameRoom> activeRooms = new Vector<>();
     private final Vector<GameRequest> pendingRequests = new Vector<>();
     private final Object lock = new Object();
+    private Gson gson = new Gson();
+
+
     private GameManager() {}
+
     public static GameManager getInstance() {
-        if (instance == null)
-            instance = new GameManager();
+        if (instance == null) instance = new GameManager();
         return instance;
     }
-    
-    private boolean isPlayerInGame(PlayerConnectionHandler player) {
-        Vector<GameRoom> copy;
-        synchronized (lock) {
-            copy = new Vector<>(activeRooms);
-        }
-        for (GameRoom room : copy) {
-            if (room.hasPlayer(player)) return true;
-        }
-        return false;
+
+    private boolean isPlayerUnavailable(PlayerConnectionHandler player) {
+        return player.getStatus() == PlayerStatus.PENDING || player.getStatus() == PlayerStatus.IN_GAME;
     }
 
     private boolean hasOutgoingPending(PlayerConnectionHandler requester) {
-        Vector<GameRequest> copy;
         synchronized (lock) {
-            copy = new Vector<>(pendingRequests);
-        }
-        for (GameRequest req : copy) {
-            if (req.requester == requester) return true;
+            for (GameRequest req : pendingRequests) {
+                if (req.requester == requester) return true;
+            }
         }
         return false;
     }
 
     private GameRequest findPendingByTarget(PlayerConnectionHandler target) {
-        Vector<GameRequest> copy;
         synchronized (lock) {
-            copy = new Vector<>(pendingRequests);
+            for (GameRequest req : pendingRequests) {
+                if (req.target == target) return req;
+            }
         }
-        for (GameRequest req : copy) {
-            if (req.target == target) return req;
+        return null;
+    }
+    
+    private GameRoom getRoomById(String roomId) {
+        synchronized (lock) {
+            for (GameRoom room : activeRooms) {
+                if (room.getRoomId().equals(roomId)) return room;
+            }
         }
         return null;
     }
 
-    public Message requestGame(PlayerConnectionHandler requester,
-                               PlayerConnectionHandler target) {
+    private PlayerConnectionHandler getPlayerById(String playerId) {
+        for (GameRoom room : activeRooms) {
+            if (room.getPlayer1().getPlayer().getId().equals(playerId)) return room.getPlayer1();
+            if (room.getPlayer2().getPlayer().getId().equals(playerId)) return room.getPlayer2();
+        }
+        return null;
+    }
 
+
+    public Message requestGame(GameRequestInfo requestInfo, PlayerConnectionHandler requester, PlayerConnectionHandler target) {
         try {
             if (requester == null || target == null) {
-                JSONObject json = new JSONObject();
-                json.put("error", "Invalid players");
-                return new Message(new Header(MessageType.ERROR, Action.REQUEST_GAME), json);
+                return Message.createMessage(MessageType.ERROR, Action.INTERNAL_SERVER_ERROR, requestInfo);
             }
 
-            if (isPlayerInGame(requester) || isPlayerInGame(target)) {
-                JSONObject json = new JSONObject();
-                json.put("error", "Player already in game");
-                return new Message(new Header(MessageType.ERROR, Action.REQUEST_GAME), json);
+            if (isPlayerUnavailable(requester) || isPlayerUnavailable(target)) {
+                return Message.createMessage(MessageType.ERROR, Action.PLAYER_BUSY, requestInfo);
             }
 
             if (hasOutgoingPending(requester)) {
-                JSONObject json = new JSONObject();
-                json.put("error", "Already waiting for response");
-                return new Message(new Header(MessageType.ERROR, Action.REQUEST_GAME), json);
+                return Message.createMessage(MessageType.ERROR, Action.PENDING_REQUEST_EXISTS, requestInfo);
             }
 
             if (findPendingByTarget(target) != null) {
-                JSONObject json = new JSONObject();
-                json.put("error", "Target already has pending request");
-                return new Message(new Header(MessageType.ERROR, Action.REQUEST_GAME), json);
+                return Message.createMessage(MessageType.ERROR, Action.TARGET_HAS_PENDING_REQUEST, requestInfo);
             }
+
+     
+            requester.setStatus(PlayerStatus.PENDING);
+            target.setStatus(PlayerStatus.PENDING);
 
             synchronized (lock) {
                 pendingRequests.add(new GameRequest(requester, target));
             }
+            Message eventToTarget = Message.createMessage( MessageType.EVENT, Action.REQUEST_GAME, requestInfo);
+target.sendMessageToPlayer(gson.toJson(eventToTarget));
 
-            JSONObject data = new JSONObject();
-            data.put("requesterId", requester.getPlayer().getId());
-
-            return new Message(
-                    new Header(MessageType.REQUEST, Action.REQUEST_GAME),
-                    data
-            );
+ 
+            return Message.createMessage(MessageType.RESPONSE, Action.REQUEST_GAME, requestInfo);
 
         } catch (Exception ex) {
-            ServerInterruptException customException =
-                    new ServerInterruptException(ex.getStackTrace());
-            ExceptionHandlerMiddleware.getInstance().handleException(customException);
-
-            JSONObject json = new JSONObject();
-            json.put("error", "Internal Server Error");
-            return new Message(new Header(MessageType.ERROR, Action.REQUEST_GAME), json);
+            ExceptionHandlerMiddleware.getInstance()
+                    .handleException(new ServerInterruptException(ex.getStackTrace()));
+            return Message.createMessage(MessageType.ERROR, Action.INTERNAL_SERVER_ERROR, requestInfo);
         }
     }
 
-    public Message handleGameResponse(PlayerConnectionHandler responder,
-                                      boolean accepted) {
-
+    public Message handleGameResponse(GameResponseInfo requestInfo, PlayerConnectionHandler responder) {
         try {
             GameRequest found = null;
 
@@ -119,127 +117,99 @@ public class GameManager {
             }
 
             if (found == null) {
-                JSONObject json = new JSONObject();
-                json.put("error", "No pending request");
-                return new Message(new Header(MessageType.ERROR, Action.GAME_RESPONSE), json);
+                return Message.createMessage(MessageType.ERROR, Action.NO_PENDING_REQUEST, requestInfo);
             }
 
-            if (!accepted) {
-                JSONObject data = new JSONObject();
-                data.put("message", "Game request rejected");
+            PlayerConnectionHandler requester = found.requester;
 
-                return new Message(
-                        new Header(MessageType.REQUEST, Action.GAME_RESPONSE),
-                        data
-                );
+            if (!requestInfo.isAccepted()) {
+                requester.setStatus(PlayerStatus.ONLINE);
+                responder.setStatus(PlayerStatus.ONLINE);
+                return Message.createMessage(MessageType.RESPONSE, Action.GAME_RESPONSE, requestInfo);
             }
 
-            return startGame(found.requester, responder);
+            return startGame(requester, responder);
 
         } catch (Exception ex) {
-            ServerInterruptException customException =
-                    new ServerInterruptException(ex.getStackTrace());
-            ExceptionHandlerMiddleware.getInstance().handleException(customException);
-
-            JSONObject json = new JSONObject();
-            json.put("error", "Internal Server Error");
-            return new Message(new Header(MessageType.ERROR, Action.GAME_RESPONSE), json);
+            ExceptionHandlerMiddleware.getInstance()
+                    .handleException(new ServerInterruptException(ex.getStackTrace()));
+            return Message.createMessage(MessageType.ERROR, Action.INTERNAL_SERVER_ERROR, requestInfo);
         }
     }
 
-    private Message startGame(PlayerConnectionHandler p1,
-                              PlayerConnectionHandler p2) {
-
+    private Message startGame(PlayerConnectionHandler p1, PlayerConnectionHandler p2) {
         try {
             GameRoom room = new GameRoom(p1, p2);
+
+            p1.setStatus(PlayerStatus.IN_GAME);
+            p2.setStatus(PlayerStatus.IN_GAME);
 
             synchronized (lock) {
                 activeRooms.add(room);
             }
-        notifyPlayersGameStarted(room);
 
-            JSONObject data = new JSONObject();
-            data.put("roomId", room.getRoomId());
-            data.put("player1", p1.getPlayer().getId());
-            data.put("player2", p2.getPlayer().getId());
-         
-  
-
-            return new Message(
-                    new Header(MessageType.REQUEST, Action.GAME_START),
-                    data
+            GameStartInfo startInfo = new GameStartInfo(
+                    room.getRoomId(),
+                    p1.getPlayer().getId(),
+                    p2.getPlayer().getId()
             );
 
-        } catch (Exception ex) {
-            ServerInterruptException customException =
-                    new ServerInterruptException(ex.getStackTrace());
-            ExceptionHandlerMiddleware.getInstance().handleException(customException);
+            notifyPlayersGameStarted(room);
 
-            JSONObject json = new JSONObject();
-            json.put("error", "Internal Server Error");
-            return new Message(new Header(MessageType.ERROR, Action.GAME_START), json);
+            return Message.createMessage(MessageType.RESPONSE, Action.GAME_START, startInfo);
+
+        } catch (Exception ex) {
+            ExceptionHandlerMiddleware.getInstance()
+                    .handleException(new ServerInterruptException(ex.getStackTrace()));
+            return Message.createMessage(MessageType.ERROR, Action.INTERNAL_SERVER_ERROR, null);
         }
     }
-   public void notifyPlayersGameStarted(GameRoom room) {
 
-    JSONObject data = new JSONObject();
-    data.put("roomId", room.getRoomId());
-    data.put("player1", room.getPlayer1().getPlayer().getId());
-    data.put("player2", room.getPlayer2().getPlayer().getId());
-
-    Message msg = new Message(
-            new Header(MessageType.EVENT, Action.GAME_START),
-            data
-    );
-
-    try {
-        room.getPlayer1().sendMessageToPlayer(msg.toJson().toString());
-        room.getPlayer2().sendMessageToPlayer(msg.toJson().toString());
-    } catch (Exception e) {
-        ExceptionHandlerMiddleware.getInstance()
-                .handleException(new ServerInterruptException(e.getStackTrace()));
-    }
-}
-
-
-    public Message forwardMove(String roomId,
-                               PlayerConnectionHandler sender,
-                               JSONObject move) {
-
+    public void notifyPlayersGameStarted(GameRoom room) {
         try {
-            Vector<GameRoom> copy;
-            synchronized (lock) {
-                copy = new Vector<>(activeRooms);
-            }
+            GameStartInfo startInfo = new GameStartInfo(
+                    room.getRoomId(),
+                    room.getPlayer1().getPlayer().getId(),
+                    room.getPlayer2().getPlayer().getId()
+            );
 
-            for (GameRoom room : copy) {
-                if (room.getRoomId().equals(roomId)) {
-                    PlayerConnectionHandler opponent = room.getOpponent(sender);
-                    if (opponent == null) {
-                        JSONObject json = new JSONObject();
-                        json.put("error", "Invalid opponent");
-                        return new Message(new Header(MessageType.ERROR, Action.SEND_GAME_UPDATE), json);
-                    }
+            Message msg = Message.createMessage(MessageType.EVENT, Action.GAME_START, startInfo);
 
-                    return new Message(
-                            new Header(MessageType.REQUEST, Action.SEND_GAME_UPDATE),
-                            move
-                    );
-                }
-            }
+            room.getPlayer1().sendMessageToPlayer(gson.toJson(msg));
+            room.getPlayer2().sendMessageToPlayer(gson.toJson(msg));
 
-            JSONObject json = new JSONObject();
-            json.put("error", "Room not found");
-            return new Message(new Header(MessageType.ERROR, Action.SEND_GAME_UPDATE), json);
-
-        } catch (Exception ex) {
-            ServerInterruptException customException =
-                    new ServerInterruptException(ex.getStackTrace());
-            ExceptionHandlerMiddleware.getInstance().handleException(customException);
-
-            JSONObject json = new JSONObject();
-            json.put("error", "Internal Server Error");
-            return new Message(new Header(MessageType.ERROR, Action.SEND_GAME_UPDATE), json);
+        } catch (Exception e) {
+            ExceptionHandlerMiddleware.getInstance()
+                    .handleException(new ServerInterruptException(e.getStackTrace()));
         }
     }
+
+
+    public Message forwardMove(MoveInfo moveInfo) {
+        try {
+            GameRoom room = getRoomById(moveInfo.getRoomId());
+            if (room == null) {
+                return Message.createMessage(MessageType.ERROR, Action.ROOM_NOT_FOUND, moveInfo);
+            }
+
+            PlayerConnectionHandler sender = getPlayerById(moveInfo.getPlayerId());
+            PlayerConnectionHandler opponent = room.getOpponent(sender);
+            if (opponent == null) {
+                return Message.createMessage(MessageType.ERROR, Action.INVALID_OPPONENT, moveInfo);
+            }
+
+            Message msg = Message.createMessage(MessageType.RESPONSE, Action.SEND_GAME_UPDATE, moveInfo);
+            opponent.sendMessageToPlayer(gson.toJson(msg));
+
+            return Message.createMessage(MessageType.RESPONSE, Action.SEND_GAME_UPDATE, moveInfo);
+
+        } catch (Exception ex) {
+            ExceptionHandlerMiddleware.getInstance()
+                    .handleException(new ServerInterruptException(ex.getStackTrace()));
+            return Message.createMessage(MessageType.ERROR, Action.INTERNAL_SERVER_ERROR, moveInfo);
+        }
+    }
+
+ 
+   
 }
