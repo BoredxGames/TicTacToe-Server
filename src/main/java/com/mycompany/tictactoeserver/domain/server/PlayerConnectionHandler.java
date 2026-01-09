@@ -1,12 +1,14 @@
 package com.mycompany.tictactoeserver.domain.server;
 
+import com.google.gson.Gson;
 import com.mycompany.tictactoeserver.datasource.model.Player;
+import com.mycompany.tictactoeserver.domain.entity.AuthRequestEntity;
+import com.mycompany.tictactoeserver.domain.services.communication.Message;
 import com.mycompany.tictactoeserver.domain.utils.callbacks.StringCallback;
 import com.mycompany.tictactoeserver.domain.utils.callbacks.VoidCallback;
 import com.mycompany.tictactoeserver.domain.utils.exception.ExceptionHandlerMiddleware;
 import com.mycompany.tictactoeserver.domain.utils.exception.PlayerConnectionException;
 import com.mycompany.tictactoeserver.domain.utils.exception.PlayerSendMessageException;
-
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -26,8 +28,12 @@ public class PlayerConnectionHandler {
         thread.start();
     }
 
-    public void sendMessageToPlayer(String message) throws PlayerSendMessageException {
-        runnable.sendMessageToSocket(message);
+    public void sendMessageToPlayer(String message) {
+        try {
+            runnable.sendMessageToSocket(message);
+        } catch (PlayerSendMessageException e) {
+            System.out.println("Excetion sending message");
+        }
     }
 
     public void receiveMessageFromPlayer(String message) {
@@ -100,6 +106,7 @@ class PlayerRunnable implements Runnable {
                 }
                 System.out.println("Player Reading...");
                 String msg = in.readUTF();
+
                 System.out.println("in: ---> " + msg);
                 onReceive.call(msg);
             }

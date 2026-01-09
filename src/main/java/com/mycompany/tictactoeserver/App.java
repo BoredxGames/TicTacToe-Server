@@ -1,17 +1,15 @@
 package com.mycompany.tictactoeserver;
 
 import com.mycompany.tictactoeserver.datasource.database.Database;
-import com.mycompany.tictactoeserver.domain.services.communication.MessageRouter;
 import com.mycompany.tictactoeserver.domain.utils.exception.DatabaseConnectionException;
 import com.mycompany.tictactoeserver.domain.utils.exception.ExceptionHandlerMiddleware;
+import java.io.IOException;
+import java.net.URL;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
-
-import java.io.IOException;
-import java.net.URL;
 
 public class App extends Application {
 
@@ -59,6 +57,6 @@ public class App extends Application {
             ExceptionHandlerMiddleware.getInstance().handleException(e);
         }
 
-        MessageRouter.getInstance();
+       
     }
 }

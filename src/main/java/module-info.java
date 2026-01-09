@@ -4,10 +4,12 @@ module com.mycompany.tictactoeserver {
     requires org.json;
     requires java.sql;
     requires derbyclient;
-
+    requires com.google.gson;
 
     opens com.mycompany.tictactoeserver to javafx.fxml;
     opens com.mycompany.tictactoeserver.presentation to javafx.fxml;
+    opens com.mycompany.tictactoeserver.domain.services.communication to com.google.gson;
+    opens com.mycompany.tictactoeserver.domain.entity to com.google.gson;
 
     exports com.mycompany.tictactoeserver;
     exports com.mycompany.tictactoeserver.presentation;

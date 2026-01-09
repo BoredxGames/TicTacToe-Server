@@ -1,15 +1,18 @@
 package com.mycompany.tictactoeserver.domain.services.communication;
 
+import com.google.gson.Gson;
+import com.mycompany.tictactoeserver.domain.entity.AuthRequestEntity;
 import com.mycompany.tictactoeserver.domain.server.GameServerManager;
 import com.mycompany.tictactoeserver.domain.server.PlayerConnectionHandler;
 import com.mycompany.tictactoeserver.domain.services.authentication.AuthenticationService;
 import com.mycompany.tictactoeserver.domain.services.game.GameManager;
 import com.mycompany.tictactoeserver.domain.utils.exception.PlayerSendMessageException;
-import org.json.JSONObject;
 
 public class MessageRouter {
+
     private static MessageRouter instance;
     private final GameServerManager server;
+    private Gson gson = new Gson();
 
     private MessageRouter() {
         server = GameServerManager.getInstance();
@@ -23,15 +26,15 @@ public class MessageRouter {
     }
 
     public void navigateMessage(String message, PlayerConnectionHandler sender) throws PlayerSendMessageException {
-        JSONObject json = new JSONObject(message);
-
-        MessageType messageType = MessageType.valueOf(json.getInt("type"));
+        Message response = gson.fromJson(message, Message.class);
+        System.out.println("navigate message");
+        MessageType messageType = response.getHeader().getMsgType();
 
         assert messageType != null;
         switch (messageType) {
             case REQUEST:
-                Message msg = handleRequest(json,sender);
-                server.sendMessage(msg.toJson().toString(), sender);
+                handleRequest(response , sender);
+                //  server.sendMessage(msg.toJson().toString(), sender);
                 break;
             case RESPONSE:
                 // Handle response messages
@@ -48,37 +51,40 @@ public class MessageRouter {
         }
     }
 
-    private Message handleRequest(JSONObject json,PlayerConnectionHandler sender) {
-        Action action = Action.valueOf(json.getInt("action"));
+    private void handleRequest(Message message , PlayerConnectionHandler sender) {
+        Action action = message.getHeader().getAction();
+        Message responseMessage ;
+        if (action == null) {
+            System.out.println("Action is null");
+           responseMessage= new  Message(new Header(MessageType.ERROR, Action.REGISTER), null);
+        }
 
-        assert action != null;
-        return switch (action) {
-            case LOGIN ->
-                    AuthenticationService.getInstance().login(json.getString("username"), json.getString("password"));
-            case REGISTER ->
-                    AuthenticationService.getInstance().register(json.getString("username"), json.getString("password"));
-           case REQUEST_GAME -> {
-    PlayerConnectionHandler target =
-            server.getPlayerById(json.getString("targetId"));
-        yield GameManager.getInstance().requestGame(sender, target);      
-}
-            case GAME_RESPONSE -> {
-            boolean accepted = json.getBoolean("accepted");
-            yield GameManager.getInstance().handleGameResponse(sender, accepted);
-        }
-        case SEND_GAME_UPDATE -> {
-            String roomId = json.getString("roomId");
-            JSONObject move = json.getJSONObject("move");
-            yield GameManager.getInstance().forwardMove(roomId, sender, move);
-        }
-           
+        switch (action) {
+
+            case LOGIN -> {
+                System.out.println(message.toString());
+                AuthRequestEntity auth = gson.fromJson(message.getData(), AuthRequestEntity.class);
+
+             Message response=   AuthenticationService.getInstance().login(auth);
+             String msg = gson.toJson(response);
+                sender.sendMessageToPlayer(msg);
+                System.out.println(msg);
+            }
+
+            case REGISTER -> {
+                System.out.println("come reg");
+
+                AuthRequestEntity auth = gson.fromJson(message.getData(), AuthRequestEntity.class);
+
+                AuthenticationService.getInstance().register(auth);
+
+            }
 
             default -> {
-                System.out.println("Unknown Action: " + action);
-                yield new Message();
+//                System.out.println("Unknown Action: " + action);
+//                yield new Message(new Header(MessageType.ERROR, Action.REGISTER), null);
             }
         };
     }
-
 
 }

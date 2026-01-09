@@ -22,6 +22,11 @@ public class Header {
         this.action = action;
     }
 
+    @Override
+    public String toString() {
+        return "Header{" + "msgType=" + msgType + ", action=" + action + '}';
+    }
+
     public MessageType getMsgType() {
         return msgType;
     }
