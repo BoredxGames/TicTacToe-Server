@@ -1,5 +1,10 @@
 package com.mycompany.tictactoeserver.domain.server;
 
+import com.google.gson.Gson;
+import com.mycompany.tictactoeserver.datasource.model.Player;
+import com.mycompany.tictactoeserver.domain.entity.PlayerEntity;
+import com.mycompany.tictactoeserver.domain.entity.PlayerStatus;
+import com.mycompany.tictactoeserver.domain.services.communication.*;
 import com.mycompany.tictactoeserver.domain.services.communication.MessageRouter;
 import com.mycompany.tictactoeserver.domain.utils.callbacks.PlayerHandlerCallback;
 import com.mycompany.tictactoeserver.domain.utils.exception.ExceptionHandlerMiddleware;
@@ -15,10 +20,11 @@ public class GameServerManager {
     private final Vector<PlayerConnectionHandler> players = new Vector<>();
     public Thread thread;
     private final ServerRunnable runnable;
-
+private final Gson gson = new Gson();
     private final Object lock = new Object();
 
     private static GameServerManager instance;
+    
 
     public static GameServerManager getInstance() {
         if (instance == null) instance = new GameServerManager();
@@ -35,6 +41,56 @@ public class GameServerManager {
     public boolean isRunning() {
         return runnable.isRunning();
     }
+    public PlayerConnectionHandler getPlayerById(String playerId) {
+    synchronized (lock) {
+        for (PlayerConnectionHandler player : players) {
+            if (player.getPlayer() != null &&
+                player.getPlayer().getId().equals(playerId)) {
+                return player;
+            }
+        }
+    }
+    return null;
+}
+    public Vector<Player> getAvailablePlayerData() {
+    Vector<Player> available = new Vector<>();
+    synchronized (lock) {
+        for (PlayerConnectionHandler handler : players) {
+            if (handler.getStatus() == PlayerStatus.ONLINE && handler.getPlayer() != null) {
+                available.add(handler.getPlayer());
+            }
+        }
+    }
+    return available;
+}
+public Message getAvailablePlayersMessage(PlayerConnectionHandler requester) {
+    Vector<PlayerEntity> online = new Vector<>();
+    Vector<PlayerEntity> inGame = new Vector<>();
+    Vector<PlayerEntity> pending = new Vector<>();
+
+    synchronized (lock) {
+        for (PlayerConnectionHandler handler : players) {
+            if (handler.getPlayer() == null) continue;
+
+            if (requester.getPlayer() != null && 
+                handler.getPlayer().getId().equals(requester.getPlayer().getId())) {
+                continue;
+            }
+            PlayerEntity player= new PlayerEntity(handler.getPlayer().getId(),handler.getPlayer().getUsername(),handler.getPlayer().getScore());
+
+            switch (handler.getStatus()) {
+                case ONLINE -> online.add(player);
+                case IN_GAME -> inGame.add(player);
+                case PENDING -> pending.add(player);
+            }
+        }
+    }
+
+    AvailablePlayersInfo info = new AvailablePlayersInfo(online, inGame, pending);
+    return Message.createMessage(MessageType.RESPONSE, Action.GET_AVAILABLE_PLAYERS, info);
+}
+
+
 
     public void start() {
         synchronized (lock) {
@@ -57,7 +113,20 @@ public class GameServerManager {
             p.close();
         }
     }
-
+    public void broadcastPlayerList() {
+        synchronized (lock) {
+            for (PlayerConnectionHandler player : players) {
+                if (player.getPlayer() != null) {
+                    Message msg = getAvailablePlayersMessage(player);
+                    try {
+                        player.sendMessageToPlayer(gson.toJson(msg));
+                    } catch (Exception e) {
+ServerInterruptException interruptException = new ServerInterruptException(e.getStackTrace());
+            ExceptionHandlerMiddleware.getInstance().handleException(interruptException);                    }
+                }
+            }
+        }
+    }
 
     public void broadcastMessage(String message) throws PlayerSendMessageException {
         synchronized (lock) {
@@ -93,6 +162,7 @@ public class GameServerManager {
         synchronized (lock) {
             players.remove(player);
         }
+         broadcastPlayerList(); 
     }
 
     public int getOnlinePlayersCount() {

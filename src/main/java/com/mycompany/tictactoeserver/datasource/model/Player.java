@@ -22,8 +22,8 @@ public class Player {
         this.score = 0;
     }
 
-    public Player(String username, String password, int score) {
-        this.id = UUID.randomUUID().toString();
+    public Player(String id,String username, String password, int score) {
+        this.id = id;
         this.username = username;
         this.password = password;
         this.score = score;

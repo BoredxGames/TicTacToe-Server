@@ -4,6 +4,9 @@ import com.mycompany.tictactoeserver.datasource.database.dao.PlayerDAO;
 import com.mycompany.tictactoeserver.datasource.model.Player;
 import com.mycompany.tictactoeserver.domain.entity.AuthRequestEntity;
 import com.mycompany.tictactoeserver.domain.entity.AuthResponseEntity;
+import com.mycompany.tictactoeserver.domain.entity.PlayerStatus;
+import com.mycompany.tictactoeserver.domain.server.GameServerManager;
+import com.mycompany.tictactoeserver.domain.server.PlayerConnectionHandler;
 import com.mycompany.tictactoeserver.domain.services.communication.Action;
 import com.mycompany.tictactoeserver.domain.services.communication.Message;
 import com.mycompany.tictactoeserver.domain.services.communication.MessageType;
@@ -68,7 +71,7 @@ public class AuthenticationService {
         return response;
     }
 
-    public Message login(AuthRequestEntity credential) {
+    public Message login(AuthRequestEntity credential,PlayerConnectionHandler clientSession) {
         Message response;
         if (credential == null || credential.getUserName() == null || credential.getPassword() == null) {
             response = Message.createMessage(MessageType.ERROR, Action.USERNAME_NOT_FOUND, credential);
@@ -82,7 +85,11 @@ public class AuthenticationService {
                 response = Message.createMessage(MessageType.ERROR, Action.USERNAME_NOT_FOUND, credential);
                 return response;
             }
-
+if (clientSession != null) {
+                clientSession.setPlayer(player);       
+                clientSession.setStatus(PlayerStatus.ONLINE);
+            }
+            GameServerManager.getInstance().broadcastPlayerList();
             String hashedPassword = ServerSecurityManager.hashText(credential.getPassword());
             if (!hashedPassword.equals(player.getPassword())) {
               

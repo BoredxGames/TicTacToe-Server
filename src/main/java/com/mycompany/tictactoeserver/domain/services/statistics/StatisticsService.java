@@ -65,6 +65,7 @@ public class StatisticsService {
         List<PlayerEntity> leaderboard = new ArrayList<>();
         for (Player player : players) {
             PlayerEntity playerEntity = new PlayerEntity(
+                    player.getId(),
                     player.getUsername(),
                     player.getScore()
             );
