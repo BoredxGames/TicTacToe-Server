@@ -12,7 +12,6 @@ package com.mycompany.tictactoeserver.datasource.database.dao;
 import com.mycompany.tictactoeserver.datasource.database.Database;
 import com.mycompany.tictactoeserver.datasource.model.Player;
 import com.mycompany.tictactoeserver.domain.utils.exception.*;
-
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -54,8 +53,14 @@ public class PlayerDAO {
         return null;
     }
 
+    
     public Player findByUsername(String username) {
         String sql = "SELECT * FROM player WHERE username = ?";
+        if(connection==null)
+        {
+            System.out.println("No DB found");
+                    return null;
+        }
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setString(1, username);
             ResultSet rs = stmt.executeQuery();

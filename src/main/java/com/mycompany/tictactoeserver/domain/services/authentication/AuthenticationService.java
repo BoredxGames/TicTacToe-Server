@@ -83,7 +83,7 @@ public class AuthenticationService {
 
             if (player == null) {
 
-                response = Message.createMessage(MessageType.ERROR, Action.USERNAME_NOT_FOUND, credential);
+                response = Message.createMessage(MessageType.ERROR, Action.INTERNAL_SERVER_ERROR, credential);
                 return response;
             }
 
