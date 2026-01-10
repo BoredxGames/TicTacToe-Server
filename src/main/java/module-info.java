@@ -6,7 +6,7 @@ module com.mycompany.tictactoeserver {
     requires derbyclient;
     requires com.google.gson;
     requires org.kordamp.ikonli.javafx;
-
+    requires org.kordamp.ikonli.bootstrapicons;
 
     opens com.mycompany.tictactoeserver to javafx.fxml;
     opens com.mycompany.tictactoeserver.domain.services.communication to com.google.gson;
