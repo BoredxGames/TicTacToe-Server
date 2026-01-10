@@ -1,0 +1,230 @@
+.monitoring-scroll {
+    -fx-background-color: #0a0e1a;
+}
+
+.monitoring-scroll .viewport {
+    -fx-background-color: #0a0e1a;
+}
+
+.monitoring-panel {
+    -fx-background-color: #0a0e1a;
+    -fx-spacing: 20;
+}
+
+.server-overview-card {
+    -fx-background-color: #111827;
+    -fx-background-radius: 14px;
+    -fx-padding: 24px;
+    -fx-border-color: rgba(6, 182, 212, 0.2);
+    -fx-border-width: 1px;
+    -fx-border-radius: 14px;
+    -fx-effect: dropshadow(gaussian, rgba(6, 182, 212, 0.1), 10, 0, 0, 0);
+}
+
+.server-overview-card .card-icon {
+    -fx-fill: #06b6d4;
+    -fx-icon-color: #06b6d4;
+}
+
+.overview-grid {
+    -fx-hgap: 15;
+    -fx-vgap: 15;
+}
+
+.stat-tile {
+    -fx-background-color: #1a2332;
+    -fx-background-radius: 10px;
+    -fx-padding: 20 24 20 24;
+    -fx-border-width: 1px;
+    -fx-border-radius: 10px;
+    -fx-spacing: 12;
+    -fx-min-height: 120;
+}
+
+.stat-header {
+    -fx-spacing: 8;
+    -fx-alignment: center-left;
+}
+
+.stat-label {
+    -fx-font-size: 12px;
+    -fx-font-weight: 600;
+    -fx-text-fill: #9ca3af;
+}
+
+.stat-value {
+    -fx-font-size: 42px;
+    -fx-font-weight: 700;
+    -fx-text-fill: #f9fafb;
+}
+
+.stat-connected {
+    -fx-border-color: #06b6d4;
+    -fx-background-color: #1a2332;
+}
+
+.stat-connected .font-icon {
+    -fx-fill: #06b6d4;
+    -fx-icon-color: #06b6d4;
+}
+
+.stat-connected .stat-value {
+    -fx-text-fill: #06b6d4;
+}
+
+.stat-online {
+    -fx-border-color: #10b981;
+    -fx-background-color: #1a2332;
+}
+
+.stat-online .font-icon {
+    -fx-fill: #10b981;
+    -fx-icon-color: #10b981;
+}
+
+.stat-online .stat-value {
+    -fx-text-fill: #10b981;
+}
+
+.stat-offline {
+    -fx-border-color: #6b7280;
+    -fx-background-color: #1a2332;
+}
+
+.stat-offline .font-icon {
+    -fx-fill: #6b7280;
+    -fx-icon-color: #6b7280;
+}
+
+.stat-offline .stat-value {
+    -fx-text-fill: #6b7280;
+}
+
+.stat-ingame {
+    -fx-border-color: #8b5cf6;
+    -fx-background-color: #1a2332;
+}
+
+.stat-ingame .font-icon {
+    -fx-fill: #8b5cf6;
+    -fx-icon-color: #8b5cf6;
+}
+
+.stat-ingame .stat-value {
+    -fx-text-fill: #8b5cf6;
+}
+
+.chart-card {
+    -fx-background-color: #111827;
+    -fx-background-radius: 14px;
+    -fx-padding: 20px;
+    -fx-border-color: #1f2937;
+    -fx-border-width: 1px;
+    -fx-border-radius: 14px;
+    -fx-spacing: 15;
+}
+
+.card-header {
+    -fx-spacing: 10;
+    -fx-alignment: center-left;
+}
+
+.range-btn {
+    -fx-background-color: #1a2332;
+    -fx-text-fill: #9ca3af;
+    -fx-background-radius: 6px;
+    -fx-padding: 6 12 6 12;
+    -fx-font-size: 12px;
+    -fx-font-weight: 600;
+    -fx-cursor: hand;
+    -fx-border-color: #1f2937;
+    -fx-border-width: 1px;
+    -fx-border-radius: 6px;
+    -fx-min-width: 45px;
+}
+
+.range-btn:hover {
+    -fx-background-color: #1f2937;
+    -fx-text-fill: #f9fafb;
+    -fx-border-color: #374151;
+}
+
+.range-btn-active,
+.range-btn:selected {
+    -fx-background-color: #06b6d4;
+    -fx-text-fill: #0a0e1a;
+    -fx-border-color: #06b6d4;
+    -fx-font-weight: 700;
+}
+
+.range-btn-active:hover,
+.range-btn:selected:hover {
+    -fx-background-color: #0ea5c9;
+    -fx-border-color: #0ea5c9;
+}
+
+.chart-pane {
+    -fx-background-color: #1a2332;
+    -fx-background-radius: 10px;
+    -fx-padding: 15px;
+    -fx-border-color: #1f2937;
+    -fx-border-width: 1px;
+    -fx-border-radius: 10px;
+    -fx-min-height: 250;
+}
+
+.activity-card {
+    -fx-background-color: #111827;
+    -fx-background-radius: 14px;
+    -fx-padding: 20px;
+    -fx-border-color: #1f2937;
+    -fx-border-width: 1px;
+    -fx-border-radius: 14px;
+    -fx-spacing: 15;
+}
+
+.activity-log {
+    -fx-background-color: #1a2332;
+    -fx-background-radius: 10px;
+    -fx-padding: 15px;
+    -fx-spacing: 6;
+    -fx-border-color: #1f2937;
+    -fx-border-width: 1px;
+    -fx-border-radius: 10px;
+}
+
+.activity-item {
+    -fx-font-size: 13px;
+    -fx-font-family: "Consolas", "Courier New", monospace;
+    -fx-text-fill: #9ca3af;
+    -fx-padding: 8 0 8 0;
+}
+
+.activity-item:hover {
+    -fx-text-fill: #f9fafb;
+}
+
+.stat-tile:hover {
+    -fx-cursor: hand;
+    -fx-background-color: #1f2937;
+}
+
+.stat-connected:hover {
+    -fx-border-color: #06b6d4;
+    -fx-effect: dropshadow(gaussian, rgba(6, 182, 212, 0.3), 15, 0, 0, 0);
+}
+
+.stat-online:hover {
+    -fx-border-color: #10b981;
+    -fx-effect: dropshadow(gaussian, rgba(16, 185, 129, 0.3), 15, 0, 0, 0);
+}
+
+.stat-offline:hover {
+    -fx-border-color: #6b7280;
+    -fx-effect: dropshadow(gaussian, rgba(107, 114, 128, 0.3), 15, 0, 0, 0);
+}
+
+.stat-ingame:hover {
+    -fx-border-color: #8b5cf6;
+    -fx-effect: dropshadow(gaussian, rgba(139, 92, 246, 0.3), 15, 0, 0, 0);
+}
