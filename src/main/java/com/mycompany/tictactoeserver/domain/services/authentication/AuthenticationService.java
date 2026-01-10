@@ -71,7 +71,7 @@ public class AuthenticationService {
         return response;
     }
 
-    public Message login(AuthRequestEntity credential,PlayerConnectionHandler clientSession) {
+    public Message login(AuthRequestEntity credential, PlayerConnectionHandler clientSession) {
         Message response;
         if (credential == null || credential.getUserName() == null || credential.getPassword() == null) {
             response = Message.createMessage(MessageType.ERROR, Action.USERNAME_NOT_FOUND, credential);
@@ -85,22 +85,27 @@ public class AuthenticationService {
                 response = Message.createMessage(MessageType.ERROR, Action.USERNAME_NOT_FOUND, credential);
                 return response;
             }
-if (clientSession != null) {
-                clientSession.setPlayer(player);       
-                clientSession.setStatus(PlayerStatus.ONLINE);
-            }
+
             GameServerManager.getInstance().broadcastPlayerList();
             String hashedPassword = ServerSecurityManager.hashText(credential.getPassword());
             if (!hashedPassword.equals(player.getPassword())) {
-              
-                response =  Message.createMessage(MessageType.ERROR, Action.INVALID_CREDENTIAL, credential);
-            }
 
+                response = Message.createMessage(MessageType.ERROR, Action.INVALID_CREDENTIAL, credential);
+                return response;
+            }
+            if(GameServerManager.getInstance().isPlayerOnline(credential.getUserName()))
+            {
+                response = Message.createMessage(MessageType.ERROR, Action.USER_IS_ONLINE, credential);
+                return response;
+            }
             playerSessionService.startPlayerSession(player.getId());
 
             AuthResponseEntity responseEntity = new AuthResponseEntity(player);
             response = Message.createMessage(MessageType.RESPONSE, Action.LOGIN_SUCCESS, responseEntity);
-
+            if (clientSession != null) {
+                clientSession.setPlayer(player);
+                clientSession.setStatus(PlayerStatus.ONLINE);
+            }
         } catch (HashingException ex) {
             ServerInterruptException customException = new ServerInterruptException(ex.getStackTrace());
             ExceptionHandlerMiddleware.getInstance().handleException(customException);
