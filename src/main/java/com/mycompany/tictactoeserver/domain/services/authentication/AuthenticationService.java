@@ -50,8 +50,9 @@ public class AuthenticationService {
         Player player = playerDao.findByUsername(credential.getUserName());
 
         if (player != null) {
-
+            System.out.println("ظياض");
             response = Message.createMessage(MessageType.ERROR, Action.USERNAME_ALREADY_EXIST, credential);
+            return response  ; 
         }
 
         try {
@@ -93,8 +94,7 @@ public class AuthenticationService {
                 response = Message.createMessage(MessageType.ERROR, Action.INVALID_CREDENTIAL, credential);
                 return response;
             }
-            if(GameServerManager.getInstance().isPlayerOnline(credential.getUserName()))
-            {
+            if (GameServerManager.getInstance().isPlayerOnline(credential.getUserName())) {
                 response = Message.createMessage(MessageType.ERROR, Action.USER_IS_ONLINE, credential);
                 return response;
             }

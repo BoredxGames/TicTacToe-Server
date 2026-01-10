@@ -183,7 +183,8 @@ public class GameServerManager {
     public boolean isPlayerOnline(String username) {
         synchronized (lock) {
             for (PlayerConnectionHandler player : players) {
-                if (username.equals(player.getPlayer().getUsername())) {
+                
+                if (player.getPlayer()!=null&&username.equals(player.getPlayer().getUsername())) {
                     return true;
                 }
             }
