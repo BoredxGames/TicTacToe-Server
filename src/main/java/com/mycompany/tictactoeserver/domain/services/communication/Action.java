@@ -20,7 +20,8 @@ public enum Action {
     ROOM_NOT_FOUND(150),
     INVALID_OPPONENT(160),
     NO_PENDING_REQUEST(170),
-    GET_AVAILABLE_PLAYERS(180);
+    GET_AVAILABLE_PLAYERS(180),
+    USER_IS_ONLINE(190);
     
     final int id;
 
