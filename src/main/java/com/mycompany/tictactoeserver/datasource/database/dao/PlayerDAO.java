@@ -54,12 +54,15 @@ public class PlayerDAO {
     }
 
     
-    public Player findByUsername(String username) {
+    public Player findByUsername(String username) throws SQLException  {
         String sql = "SELECT * FROM player WHERE username = ?";
         if(connection==null)
         {
             System.out.println("No DB found");
-                    return null;
+             if (connection == null) {
+                 System.out.println("No DB found");
+                 throw new SQLException("No DB found: Connection is null");
+}       
         }
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setString(1, username);

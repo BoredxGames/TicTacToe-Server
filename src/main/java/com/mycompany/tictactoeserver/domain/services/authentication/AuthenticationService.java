@@ -15,6 +15,7 @@ import com.mycompany.tictactoeserver.domain.services.security.ServerSecurityMana
 import com.mycompany.tictactoeserver.domain.utils.exception.ExceptionHandlerMiddleware;
 import com.mycompany.tictactoeserver.domain.utils.exception.HashingException;
 import com.mycompany.tictactoeserver.domain.utils.exception.ServerInterruptException;
+import java.sql.SQLException;
 
 /**
  *
@@ -47,15 +48,16 @@ public class AuthenticationService {
             response = Message.createMessage(MessageType.ERROR, Action.USERNAME_NOT_FOUND, credential);
         }
 
-        Player player = playerDao.findByUsername(credential.getUserName());
-
-        if (player != null) {
-            System.out.println("ظياض");
-            response = Message.createMessage(MessageType.ERROR, Action.USERNAME_ALREADY_EXIST, credential);
-            return response  ; 
-        }
-
         try {
+
+            Player player = playerDao.findByUsername(credential.getUserName());
+
+            if (player != null) {
+                System.out.println("ظياض");
+                response = Message.createMessage(MessageType.ERROR, Action.USERNAME_ALREADY_EXIST, credential);
+                return response;
+            }
+
             String hashedPassword = ServerSecurityManager.hashText(credential.getPassword());
             Player newPlayer = new Player(credential.getUserName(), hashedPassword);
             playerDao.insert(newPlayer);
@@ -68,6 +70,9 @@ public class AuthenticationService {
             ExceptionHandlerMiddleware.getInstance().handleException(customException);
 
             response = Message.createMessage(MessageType.ERROR, Action.INTERNAL_SERVER_ERROR, credential);
+        } catch (SQLException ex) {
+             response = Message.createMessage(MessageType.ERROR, Action.INTERNAL_SERVER_ERROR, credential);
+                return response;
         }
         return response;
     }
@@ -83,7 +88,7 @@ public class AuthenticationService {
 
             if (player == null) {
 
-                response = Message.createMessage(MessageType.ERROR, Action.INTERNAL_SERVER_ERROR, credential);
+                response = Message.createMessage(MessageType.ERROR, Action.USERNAME_NOT_FOUND, credential);
                 return response;
             }
 
@@ -112,6 +117,9 @@ public class AuthenticationService {
 
             response = Message.createMessage(MessageType.ERROR, Action.INTERNAL_SERVER_ERROR, credential);
 
+        } catch (SQLException ex) {
+            response = Message.createMessage(MessageType.ERROR, Action.INTERNAL_SERVER_ERROR, credential);
+            return response;
         }
         return response;
     }
