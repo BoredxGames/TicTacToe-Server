@@ -128,6 +128,8 @@ target.sendMessageToPlayer(gson.toJson(eventToTarget));
             if (!requestInfo.isAccepted()) {
                 requester.setStatus(PlayerStatus.ONLINE);
                 responder.setStatus(PlayerStatus.ONLINE);
+                GameServerManager.getInstance().broadcastPlayerList();
+
                 return Message.createMessage(MessageType.RESPONSE, Action.GAME_RESPONSE, requestInfo);
             }
 

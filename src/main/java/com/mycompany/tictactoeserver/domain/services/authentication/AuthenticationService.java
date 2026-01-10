@@ -86,8 +86,8 @@ public class AuthenticationService {
                 return response;
             }
 if (clientSession != null) {
-                clientSession.setPlayer(player);        // CRITICAL: Attach player object
-                clientSession.setStatus(PlayerStatus.ONLINE); // CRITICAL: Set status
+                clientSession.setPlayer(player);       
+                clientSession.setStatus(PlayerStatus.ONLINE);
             }
             GameServerManager.getInstance().broadcastPlayerList();
             String hashedPassword = ServerSecurityManager.hashText(credential.getPassword());

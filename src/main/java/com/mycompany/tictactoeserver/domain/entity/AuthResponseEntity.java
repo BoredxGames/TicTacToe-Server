@@ -14,18 +14,18 @@ import com.mycompany.tictactoeserver.datasource.model.Player;
 public class AuthResponseEntity {
 
     private String id;
-    private String username;
+    private String userName;
     private int score;
 
     public AuthResponseEntity(String id, String userName, int Score) {
         this.id = id;
-        this.username = userName;
+        this.userName = userName;
         this.score = Score;
     }
 
     public AuthResponseEntity(Player player) {
         id = player.getId();
-        username = player.getUsername();
+        userName = player.getUsername();
         score = player.getScore();
     }
 
@@ -37,7 +37,7 @@ public class AuthResponseEntity {
     }
 
     public void setUserName(String userName) {
-        this.username = userName;
+        this.userName = userName;
     }
 
     public void setScore(int Score) {
@@ -49,7 +49,7 @@ public class AuthResponseEntity {
     }
 
     public String getUserName() {
-        return username;
+        return userName;
     }
 
     public int getScore() {
@@ -62,7 +62,7 @@ public class AuthResponseEntity {
 
     @Override
     public String toString() {
-        return "AuthRequestEntity{" + "id=" + id + ", userName=" + username + ", Score=" + score + '}';
+        return "AuthRequestEntity{" + "id=" + id + ", userName=" + userName + ", Score=" + score + '}';
     }
 
 }

@@ -10,13 +10,21 @@ package com.mycompany.tictactoeserver.domain.services.game;
  */
 public class GameRequestInfo {
     private final String requesterId;
+    private final String requesterUserName;
     private final String targetId;
-  
 
-    public GameRequestInfo(String requesterId, String targetId) {
+    public GameRequestInfo(String requesterId, String requesterUserName, String targetId) {
         this.requesterId = requesterId;
+        this.requesterUserName = requesterUserName;
         this.targetId = targetId;
     }
+
+    public String getRequesterUserName() {
+        return requesterUserName;
+    }
+  
+
+ 
 
     public String getRequesterId() {
         return requesterId;
