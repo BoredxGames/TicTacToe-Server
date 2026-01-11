@@ -51,8 +51,7 @@ public class App extends Application {
     private void setupDependencies() {
         try {
             Database.getInstance().connect();
-            DeviceManager.getIpv4Address();
-        } catch (DatabaseConnectionException | SocketException e) {
+        } catch (DatabaseConnectionException e) {
             ExceptionHandlerMiddleware.getInstance().handleException(e);
         }
 
