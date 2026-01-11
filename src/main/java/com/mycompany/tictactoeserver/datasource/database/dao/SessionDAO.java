@@ -108,7 +108,7 @@ public class SessionDAO {
     }
 
     public Session getActiveSessionByPlayerId(String playerId) {
-        String sql = "SELECT id, player_id, start_date, end_date FROM ACTIVITY WHERE player_id = ? AND end_date IS NULL ORDER BY start_date DESC LIMIT 1";
+        String sql = "SELECT id, player_id, start_date, end_date FROM ACTIVITY WHERE player_id = ? AND end_date IS NULL ORDER BY start_date DESC";
         try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
             preparedStatement.setString(1, playerId);
 
@@ -244,6 +244,7 @@ public class SessionDAO {
 
     private Session mapResultSetToSession(ResultSet resultSet) throws SQLException {
         Session session = new Session();
+        session.setId(resultSet.getString("id"));
         session.setPlayerId(resultSet.getString("player_id"));
 
         Timestamp startTimestamp = resultSet.getTimestamp("start_date");
