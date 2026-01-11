@@ -5,7 +5,9 @@ import com.mycompany.tictactoeserver.datasource.model.Player;
 import com.mycompany.tictactoeserver.domain.entity.PlayerEntity;
 import com.mycompany.tictactoeserver.domain.entity.PlayerStatus;
 import com.mycompany.tictactoeserver.domain.services.communication.*;
+import com.mycompany.tictactoeserver.domain.services.playerSession.PlayerSessionService;
 import com.mycompany.tictactoeserver.domain.utils.callbacks.PlayerHandlerCallback;
+import com.mycompany.tictactoeserver.domain.utils.callbacks.VoidCallback;
 import com.mycompany.tictactoeserver.domain.utils.exception.ExceptionHandlerMiddleware;
 import com.mycompany.tictactoeserver.domain.utils.exception.PlayerSendMessageException;
 import com.mycompany.tictactoeserver.domain.utils.exception.ServerInterruptException;
@@ -18,10 +20,12 @@ import java.util.Vector;
 public class GameServerManager {
 
     private final Vector<PlayerConnectionHandler> players = new Vector<>();
+    private final Vector<VoidCallback> counterListeners = new Vector<>();
     public Thread thread;
     private final ServerRunnable runnable;
     private final Gson gson = new Gson();
     private final Object lock = new Object();
+    private final PlayerSessionService playerSessionService;
 
     private static GameServerManager instance;
 
@@ -33,6 +37,7 @@ public class GameServerManager {
     }
 
     private GameServerManager() {
+        this.playerSessionService = new PlayerSessionService();
         runnable = new ServerRunnable(this::addPlayer);
         thread = new Thread(runnable);
 
@@ -47,14 +52,13 @@ public class GameServerManager {
         synchronized (lock) {
             for (PlayerConnectionHandler player : players) {
                 if (player.getPlayer() != null
-                        && player.getPlayer().getId().equals(playerId)) {
+                        &&player.getPlayer().getId().equals(playerId)) {
                     return player;
                 }
             }
         }
         return null;
     }
-
     public Vector<Player> getAvailablePlayerData() {
         Vector<Player> available = new Vector<>();
         synchronized (lock) {
@@ -79,7 +83,7 @@ public class GameServerManager {
                 }
 
                 if (requester.getPlayer() != null
-                        && handler.getPlayer().getId().equals(requester.getPlayer().getId())) {
+                        &&handler.getPlayer().getId().equals(requester.getPlayer().getId())) {
                     continue;
                 }
                 PlayerEntity player = new PlayerEntity(handler.getPlayer().getId(), handler.getPlayer().getUsername(), handler.getPlayer().getScore());
@@ -164,26 +168,82 @@ public class GameServerManager {
     public void addPlayer(PlayerConnectionHandler player) {
         synchronized (lock) {
             players.add(player);
+            runCallbacks();
         }
     }
 
     public void removePlayer(PlayerConnectionHandler player) {
         synchronized (lock) {
+            
+            if(player.getPlayer() != null)
+            {
+                System.out.println("Player is not nulll-----------------------------------------------");
+                String playerID = player.getPlayer().getId();
+                playerSessionService.endPlayerSession(playerID);
+            }
             players.remove(player);
+            runCallbacks();
         }
         broadcastPlayerList();
     }
 
     public int getOnlinePlayersCount() {
         synchronized (lock) {
-            return players.size();
+            int counter = 0;
+            for (PlayerConnectionHandler player : players) {
+                if (player.getStatus() != PlayerStatus.OFFLINE) {
+                    counter++;
+                }
+            }
+
+            return counter;
+        }
+    }
+
+    public int getAvailablePlayersCount() {
+        synchronized (lock) {
+            int counter = 0;
+            for (PlayerConnectionHandler player : players) {
+                if (player.getStatus() == PlayerStatus.ONLINE) {
+                    counter++;
+                }
+            }
+            System.out.println("==============================================================================" + counter);
+            return counter;
+        }
+    }
+
+    public int getInGamePlayersCount() {
+        synchronized (lock) {
+            int counter = 0;
+            for (PlayerConnectionHandler player : players) {
+                if (player.getStatus() == PlayerStatus.IN_GAME) {
+                    counter++;
+                }
+            }
+
+            return counter;
+        }
+    }
+
+    public int getConnectedPlayersCount() {
+        return players.size();
+    }
+
+    public void addPlayerCountListener(VoidCallback callback) {
+        counterListeners.add(callback);
+    }
+
+    public void runCallbacks() {
+        for (VoidCallback listener : counterListeners) {
+            listener.call();
         }
     }
 
     public boolean isPlayerOnline(String username) {
         synchronized (lock) {
             for (PlayerConnectionHandler player : players) {
-                
+
                 if (player.getPlayer()!=null&&username.equals(player.getPlayer().getUsername())) {
                     return true;
                 }
