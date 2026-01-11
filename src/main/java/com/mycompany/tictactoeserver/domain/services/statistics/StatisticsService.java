@@ -58,6 +58,37 @@ public class StatisticsService {
 
         return activityPoints;
     }
+    public List<ActivityPoint> getOnlinePlayersCountPerMinute() {
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime thirtyMinutesAgo = now.minusMinutes(30);
+
+        List<Session> recentSessions = playerSessionService.getSessionsByDateRange(thirtyMinutesAgo, now);
+
+        if (recentSessions.isEmpty()) {
+            return new ArrayList<>();
+        }
+
+        List<ActivityPoint> activityPoints = new ArrayList<>();
+
+        for (int i = 0; i < 30; i++) {
+            LocalDateTime minuteStart = thirtyMinutesAgo.plusHours(0).withMinute(i).withSecond(0).withNano(0);
+            LocalDateTime minuteEnd = minuteStart.plusMinutes(1);
+            int playersOnline = 0;
+
+            for (Session session : recentSessions) {
+                LocalDateTime sessionStart = session.getStartTime();
+                LocalDateTime sessionEnd = session.getEndTime() != null ? session.getEndTime() : now;
+
+                if (sessionStart.isBefore(minuteEnd) && sessionEnd.isAfter(minuteStart)) {
+                    playersOnline++;
+                }
+            }
+
+            activityPoints.add(new ActivityPoint(minuteStart.getMinute(), playersOnline));
+        }
+
+        return activityPoints;
+    }
 
     public List<PlayerEntity> getLeaderboard() {
         List<Player> players = playerService.getAllPlayers();
@@ -84,8 +115,19 @@ public class StatisticsService {
     public int getOnlinePlayersCount() {
         return gameServerManager.getOnlinePlayersCount();
     }
-
     public int getOfflinePlayersCount() {
         return getTotalPlayersCount() - getOnlinePlayersCount();
+    }
+
+    public int getAvailablePlayerCount() {
+        return gameServerManager.getAvailablePlayersCount();
+    }
+
+    public int getConnectedPlayersCount() {
+        return gameServerManager.getConnectedPlayersCount();
+    }
+
+    public int getInGamePlayersCount() {
+        return gameServerManager.getInGamePlayersCount();
     }
 }

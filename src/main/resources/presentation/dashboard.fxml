@@ -1,28 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import java.net.URL?>
-<?import javafx.geometry.Insets?>
-<?import javafx.scene.chart.CategoryAxis?>
-<?import javafx.scene.chart.LineChart?>
-<?import javafx.scene.chart.NumberAxis?>
-<?import javafx.scene.control.Label?>
-<?import javafx.scene.control.ScrollPane?>
-<?import javafx.scene.control.SplitPane?>
-<?import javafx.scene.control.TableColumn?>
-<?import javafx.scene.control.TableView?>
-<?import javafx.scene.control.TextField?>
-<?import javafx.scene.control.ToggleButton?>
-<?import javafx.scene.layout.BorderPane?>
-<?import javafx.scene.layout.ColumnConstraints?>
-<?import javafx.scene.layout.GridPane?>
-<?import javafx.scene.layout.HBox?>
-<?import javafx.scene.layout.Region?>
-<?import javafx.scene.layout.RowConstraints?>
-<?import javafx.scene.layout.StackPane?>
-<?import javafx.scene.layout.VBox?>
-<?import javafx.scene.shape.SVGPath?>
+<?import java.net.*?>
+<?import javafx.geometry.*?>
+<?import javafx.scene.chart.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import org.kordamp.ikonli.javafx.*?>
 
-<BorderPane prefHeight="900" prefWidth="1600" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.mycompany.tictactoeserver.presentation.DashboardController">
+<BorderPane prefHeight="900" prefWidth="1600" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.mycompany.tictactoeserver.presentation.DashboardController">
     <stylesheets>
         <URL value="@css/dashboard-base.css" />
         <URL value="@css/dashboard-header.css" />
@@ -35,24 +20,34 @@
             <padding>
                 <Insets bottom="20" left="20" right="20" top="20" />
             </padding>
+
             <HBox alignment="CENTER_LEFT" spacing="15">
                 <Region styleClass="header-accent-bar" />
+
                 <VBox styleClass="header-text">
                     <Label fx:id="titleLabel" styleClass="title" text="XO Server Dashboard" />
                     <Label fx:id="subtitleLabel" styleClass="subtitle" text="Server IP: 192.168.1.124" />
                 </VBox>
             </HBox>
+
             <Region HBox.hgrow="ALWAYS" />
+
             <HBox alignment="CENTER" spacing="0" styleClass="server-control-container">
                 <Label fx:id="serverStatusLabel" styleClass="status-stopped" text="STOPPED" />
+
                 <Region styleClass="control-divider" />
+
                 <Label styleClass="server-power-label" text="Server Power" />
+
                 <StackPane>
-                    <ToggleButton fx:id="serverToggle" contentDisplay="GRAPHIC_ONLY" onAction="#onToggleServer" styleClass="toggle-switch">
+
+                    <ToggleButton fx:id="serverToggle" contentDisplay="GRAPHIC_ONLY" onAction="#onToggleServer" selected="false" styleClass="toggle-switch">
                         <graphic>
                             <Region mouseTransparent="true" styleClass="thumb" />
                         </graphic>
+
                     </ToggleButton>
+
                 </StackPane>
             </HBox>
         </HBox>
@@ -60,31 +55,54 @@
 
     <center>
         <SplitPane fx:id="mainSplitPane" dividerPositions="0.65" styleClass="main-split-pane">
+
             <VBox spacing="12" styleClass="players-panel">
                 <padding>
                     <Insets bottom="20" left="20" right="20" top="20" />
                 </padding>
+
                 <HBox styleClass="players-header">
                     <Label fx:id="playersTitleLabel" styleClass="section-title" text="Players" />
                     <Region HBox.hgrow="ALWAYS" />
                 </HBox>
+
                 <HBox spacing="10" styleClass="players-controls">
                     <TextField fx:id="searchField" onAction="#onSearch" promptText="Search by username…" styleClass="search-field" />
+
                     <Region HBox.hgrow="ALWAYS" />
+
                     <ToggleButton fx:id="filterAllBtn" onAction="#onFilterAll" styleClass="filter-pill filter-pill-active" text="All" />
+
                     <ToggleButton fx:id="filterOnlineBtn" onAction="#onFilterOnline" styleClass="filter-pill" text="Online" />
+
                     <ToggleButton fx:id="filterOfflineBtn" onAction="#onFilterOffline" styleClass="filter-pill" text="Offline" />
+
                     <ToggleButton fx:id="filterAvailableBtn" onAction="#onFilterAvailable" styleClass="filter-pill" text="Available" />
+
                     <ToggleButton fx:id="filterInGameBtn" onAction="#onFilterInGame" styleClass="filter-pill" text="In-Game" />
                 </HBox>
+
                 <TableView fx:id="playersTable" styleClass="players-table" VBox.vgrow="ALWAYS">
                     <columns>
-                        <TableColumn fx:id="userColumn" prefWidth="250" text="User" />
-                        <TableColumn fx:id="statusColumn" prefWidth="120" text="Status" />
-                        <TableColumn fx:id="gameStateColumn" prefWidth="150" text="Game State" />
-                        <TableColumn fx:id="lastSeenColumn" prefWidth="120" text="Last Seen" />
+                        <TableColumn fx:id="userColumn" prefWidth="250" styleClass="table-col-user" text="User" />
+
+                        <TableColumn fx:id="statusColumn" prefWidth="120" styleClass="table-col-status" text="Status" />
+
+                        <TableColumn fx:id="gameStateColumn" prefWidth="150" styleClass="table-col-gamestate" text="Game State" />
+
+                        <TableColumn fx:id="lastSeenColumn" prefWidth="120" styleClass="table-col-lastseen" text="Last Seen" />
                     </columns>
                 </TableView>
+
+                <HBox spacing="10" styleClass="players-footer">
+                    <Label fx:id="paginationLabel" styleClass="pagination-label" text="Showing 9 of 145 players" />
+
+                    <Region HBox.hgrow="ALWAYS" />
+
+                    <Button fx:id="prevPageBtn" onAction="#onPreviousPage" styleClass="pagination-btn" text="Previous" />
+
+                    <Button fx:id="nextPageBtn" onAction="#onNextPage" styleClass="pagination-btn" text="Next" />
+                </HBox>
             </VBox>
 
             <ScrollPane fx:id="monitoringScrollPane" fitToWidth="true" styleClass="monitoring-scroll">
@@ -92,50 +110,100 @@
                     <padding>
                         <Insets bottom="20" left="20" right="20" top="20" />
                     </padding>
+
                     <VBox spacing="15" styleClass="card, server-overview-card">
-                        <HBox alignment="CENTER">
+
+                        <HBox>
                             <Label fx:id="serverOverviewLabel" styleClass="card-title" text="Server Overview" />
                             <Region HBox.hgrow="ALWAYS" />
-                            <SVGPath content="M4 9a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm10 0a1 1 0 1 1-2 0 1 1 0 0 1 2 0zM2 4.5A1.5 1.5 0 0 1 3.5 3h9A1.5 1.5 0 0 1 14 4.5V6a.5.5 0 0 1-.5.5h-11A.5.5 0 0 1 2 6V4.5zm1 1h10v-1a.5.5 0 0 0-.5-.5h-9a.5.5 0 0 0-.5.5v1zM2 10.5a.5.5 0 0 1 .5-.5h11a.5.5 0 0 1 .5.5V12a1.5 1.5 0 0 1-1.5 1.5h-9A1.5 1.5 0 0 1 2 12v-1.5zm1 .5v1a.5.5 0 0 0 .5.5h9a.5.5 0 0 0 .5-.5v-1H3z" fill="WHITE" />
+                            <FontIcon iconLiteral="bi-hdd-stack" iconSize="24" styleClass="card-icon" />
                         </HBox>
-                        <GridPane hgap="15" vgap="15">
+
+                        <GridPane fx:id="overviewGrid" hgap="15" styleClass="overview-grid" vgap="15">
+
                             <columnConstraints>
                                 <ColumnConstraints hgrow="ALWAYS" percentWidth="50" />
                                 <ColumnConstraints hgrow="ALWAYS" percentWidth="50" />
                             </columnConstraints>
+                            <rowConstraints>
+                                <RowConstraints vgrow="ALWAYS" />
+                                <RowConstraints vgrow="ALWAYS" />
+                            </rowConstraints>
+
                             <VBox styleClass="stat-tile, stat-connected" GridPane.columnIndex="0" GridPane.rowIndex="0">
-                                <Label styleClass="stat-label" text="Connected" />
-                                <Label fx:id="connectedCountLabel" styleClass="stat-value" text="10" />
+                                <HBox alignment="CENTER_LEFT" spacing="8" styleClass="stat-header">
+                                    <FontIcon iconLiteral="bi-diagram-3-fill" iconSize="16" styleClass="font-icon" />
+                                    <Label styleClass="stat-label" text="Connected" />
+                                </HBox>
+                                <Label fx:id="connectedCountLabel" styleClass="stat-value" text="0" />
                             </VBox>
+
                             <VBox styleClass="stat-tile, stat-online" GridPane.columnIndex="1" GridPane.rowIndex="0">
-                                <Label styleClass="stat-label" text="Available" />
-                                <Label fx:id="onlineCountLabel" styleClass="stat-value" text="6" />
+                                <HBox alignment="CENTER_LEFT" spacing="8" styleClass="stat-header">
+                                    <FontIcon iconLiteral="bi-check-circle-fill" iconSize="16" styleClass="font-icon" />
+                                    <Label styleClass="stat-label" text="Available" />
+                                </HBox>
+                                <Label fx:id="availableCountLabel" styleClass="stat-value" text="0" />
                             </VBox>
-                     <rowConstraints>
-                        <RowConstraints />
-                     </rowConstraints>
+
+                            <VBox styleClass="stat-tile, stat-offline" GridPane.columnIndex="0" GridPane.rowIndex="1">
+                                <HBox alignment="CENTER_LEFT" spacing="8" styleClass="stat-header">
+                                    <FontIcon iconLiteral="bi-x-circle-fill" iconSize="16" styleClass="font-icon" />
+                                    <Label styleClass="stat-label" text="Offline" />
+                                </HBox>
+                                <Label fx:id="offlineCountLabel" styleClass="stat-value" text="0" />
+                            </VBox>
+
+                            <VBox styleClass="stat-tile, stat-ingame" GridPane.columnIndex="1" GridPane.rowIndex="1">
+                                <HBox alignment="CENTER_LEFT" spacing="8" styleClass="stat-header">
+                                    <FontIcon iconLiteral="bi-controller" iconSize="16" styleClass="font-icon" />
+                                    <Label styleClass="stat-label" text="In-Game" />
+                                </HBox>
+                                <Label fx:id="inGameCountLabel" styleClass="stat-value" text="0" />
+                            </VBox>
+
                         </GridPane>
                     </VBox>
 
-                    <VBox prefHeight="503.0" prefWidth="518.0" spacing="10" styleClass="card, chart-card" VBox.vgrow="ALWAYS">
-                        <HBox spacing="10">
-                            <Label styleClass="card-title" text="Players Over Time" />
+
+                    <VBox spacing="15" styleClass="card, chart-card">
+
+                        <HBox alignment="CENTER_LEFT" spacing="10" styleClass="card-header">
+                            <Label fx:id="playersOverTimeLabel" styleClass="card-title" text="Players Over Time" />
+
                             <Region HBox.hgrow="ALWAYS" />
-                            <ToggleButton fx:id="range5mBtn" onAction="#onRange5m" styleClass="range-btn" text="5m" />
-                            <ToggleButton fx:id="range30mBtn" onAction="#onRange30m" styleClass="range-btn, range-btn-active" text="30m" />
-                            <ToggleButton fx:id="range24hBtn" onAction="#onRange24h" styleClass="range-btn" text="24h" />
+
+                            <HBox spacing="5" styleClass="button-container">
+                                <ToggleButton fx:id="range5mBtn" onAction="#onRange5m" styleClass="range-btn" text="5m">
+                                    <toggleGroup>
+                                        <ToggleGroup fx:id="timeRangeGroup"/>
+                                    </toggleGroup>
+                                </ToggleButton>
+
+                                <ToggleButton fx:id="range30mBtn" onAction="#onRange30m" selected="true" styleClass="range-btn" text="30m" toggleGroup="$timeRangeGroup" />
+
+                                <ToggleButton fx:id="range24hBtn" onAction="#onRange24h" styleClass="range-btn" text="24h" toggleGroup="$timeRangeGroup" />
+                            </HBox>
                         </HBox>
-                        <LineChart fx:id="playerChart" animated="false" prefHeight="417.0" prefWidth="499.0">
-                            <xAxis>
-                                <CategoryAxis label="Time" prefWidth="395.0" side="BOTTOM" fx:id="xAxis" />
-                            </xAxis>
-                            <yAxis>
-                                <NumberAxis fx:id="yAxis" label="Players" prefHeight="385.0" prefWidth="58.0" side="LEFT" />
-                            </yAxis>
-                        </LineChart>
+
+                        <StackPane fx:id="playersChartPane" styleClass="chart-pane" VBox.vgrow="ALWAYS">
+                            <children>
+                                <LineChart fx:id="lineChart" createSymbols="false" legendVisible="false" animated="false">
+                                    <xAxis>
+                                        <CategoryAxis fx:id="xAxis" label="Time" side="BOTTOM" tickLabelGap="5.0" />
+                                    </xAxis>
+                                    <yAxis>
+                                        <NumberAxis fx:id="yAxis" label="Player Count" side="LEFT" forceZeroInRange="true" />
+                                    </yAxis>
+                                </LineChart>
+                            </children>
+                        </StackPane>
                     </VBox>
+
                 </VBox>
             </ScrollPane>
+
         </SplitPane>
     </center>
+
 </BorderPane>
