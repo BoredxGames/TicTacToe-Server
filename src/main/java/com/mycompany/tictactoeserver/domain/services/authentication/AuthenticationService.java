@@ -15,6 +15,7 @@ import com.mycompany.tictactoeserver.domain.services.security.ServerSecurityMana
 import com.mycompany.tictactoeserver.domain.utils.exception.ExceptionHandlerMiddleware;
 import com.mycompany.tictactoeserver.domain.utils.exception.HashingException;
 import com.mycompany.tictactoeserver.domain.utils.exception.ServerInterruptException;
+import java.sql.SQLException;
 
 /**
  *
@@ -47,14 +48,16 @@ public class AuthenticationService {
             response = Message.createMessage(MessageType.ERROR, Action.USERNAME_NOT_FOUND, credential);
         }
 
-        Player player = playerDao.findByUsername(credential.getUserName());
-
-        if (player != null) {
-
-            response = Message.createMessage(MessageType.ERROR, Action.USERNAME_ALREADY_EXIST, credential);
-        }
-
         try {
+
+            Player player = playerDao.findByUsername(credential.getUserName());
+
+            if (player != null) {
+                System.out.println("ظياض");
+                response = Message.createMessage(MessageType.ERROR, Action.USERNAME_ALREADY_EXIST, credential);
+                return response;
+            }
+
             String hashedPassword = ServerSecurityManager.hashText(credential.getPassword());
             Player newPlayer = new Player(credential.getUserName(), hashedPassword);
             playerDao.insert(newPlayer);
@@ -67,11 +70,14 @@ public class AuthenticationService {
             ExceptionHandlerMiddleware.getInstance().handleException(customException);
 
             response = Message.createMessage(MessageType.ERROR, Action.INTERNAL_SERVER_ERROR, credential);
+        } catch (SQLException ex) {
+             response = Message.createMessage(MessageType.ERROR, Action.INTERNAL_SERVER_ERROR, credential);
+                return response;
         }
         return response;
     }
 
-    public Message login(AuthRequestEntity credential,PlayerConnectionHandler clientSession) {
+    public Message login(AuthRequestEntity credential, PlayerConnectionHandler clientSession) {
         Message response;
         if (credential == null || credential.getUserName() == null || credential.getPassword() == null) {
             response = Message.createMessage(MessageType.ERROR, Action.USERNAME_NOT_FOUND, credential);
@@ -85,28 +91,35 @@ public class AuthenticationService {
                 response = Message.createMessage(MessageType.ERROR, Action.USERNAME_NOT_FOUND, credential);
                 return response;
             }
-if (clientSession != null) {
-                clientSession.setPlayer(player);       
-                clientSession.setStatus(PlayerStatus.ONLINE);
-            }
+
             GameServerManager.getInstance().broadcastPlayerList();
             String hashedPassword = ServerSecurityManager.hashText(credential.getPassword());
             if (!hashedPassword.equals(player.getPassword())) {
-              
-                response =  Message.createMessage(MessageType.ERROR, Action.INVALID_CREDENTIAL, credential);
-            }
 
+                response = Message.createMessage(MessageType.ERROR, Action.INVALID_CREDENTIAL, credential);
+                return response;
+            }
+            if (GameServerManager.getInstance().isPlayerOnline(credential.getUserName())) {
+                response = Message.createMessage(MessageType.ERROR, Action.USER_IS_ONLINE, credential);
+                return response;
+            }
             playerSessionService.startPlayerSession(player.getId());
 
             AuthResponseEntity responseEntity = new AuthResponseEntity(player);
             response = Message.createMessage(MessageType.RESPONSE, Action.LOGIN_SUCCESS, responseEntity);
-
+            if (clientSession != null) {
+                clientSession.setPlayer(player);
+                clientSession.setStatus(PlayerStatus.ONLINE);
+            }
         } catch (HashingException ex) {
             ServerInterruptException customException = new ServerInterruptException(ex.getStackTrace());
             ExceptionHandlerMiddleware.getInstance().handleException(customException);
 
             response = Message.createMessage(MessageType.ERROR, Action.INTERNAL_SERVER_ERROR, credential);
 
+        } catch (SQLException ex) {
+            response = Message.createMessage(MessageType.ERROR, Action.INTERNAL_SERVER_ERROR, credential);
+            return response;
         }
         return response;
     }
