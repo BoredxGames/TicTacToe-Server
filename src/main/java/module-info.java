@@ -7,6 +7,8 @@ module com.mycompany.tictactoeserver {
     requires com.google.gson;
     requires org.kordamp.ikonli.javafx;
     requires org.kordamp.ikonli.bootstrapicons;
+    requires java.desktop;
+
 
     opens com.mycompany.tictactoeserver to javafx.fxml;
     opens com.mycompany.tictactoeserver.domain.services.communication to com.google.gson;
