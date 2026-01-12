@@ -3,6 +3,7 @@ package com.mycompany.tictactoeserver.presentation;
 import com.mycompany.tictactoeserver.domain.entity.ActivityPoint;
 import com.mycompany.tictactoeserver.domain.server.GameServerManager;
 import com.mycompany.tictactoeserver.domain.services.statistics.StatisticsService;
+import com.mycompany.tictactoeserver.domain.utils.BackgroundTaskScheduler;
 import com.mycompany.tictactoeserver.domain.utils.DeviceManager;
 import javafx.application.Platform;
 import javafx.beans.property.IntegerProperty;
@@ -22,6 +23,7 @@ import java.net.URL;
 import java.util.Arrays;
 import java.util.List;
 import java.util.ResourceBundle;
+import java.util.concurrent.TimeUnit;
 
 public class DashboardController implements Initializable {
 
@@ -109,6 +111,7 @@ public class DashboardController implements Initializable {
 
     private GameServerManager serverManager;
     private StatisticsService statsService;
+    private BackgroundTaskScheduler chartUpdater;
 
     IntegerProperty availablePlayers = new SimpleIntegerProperty(0);
     IntegerProperty offlinePlayers = new SimpleIntegerProperty(0);
@@ -127,17 +130,21 @@ public class DashboardController implements Initializable {
             System.out.println("Failed to get ipv4 address in main controller");
         }
 
-        updateMonitorStats();
+
+        availablePlayers.addListener((observable, oldValue, newValue) -> availableCountLabel.setText(newValue + ""));
+        offlinePlayers.addListener((observable, oldValue, newValue) -> offlineCountLabel.setText(newValue + ""));
+        connectedPlayers.addListener((observable, oldValue, newValue) -> connectedCountLabel.setText(newValue + ""));
+        inGamePlayers.addListener((observable, oldValue, newValue) -> inGameCountLabel.setText(newValue + ""));
+
+        offlinePlayers.addListener((observable, oldValue, newValue) -> notifyChart());
+        connectedPlayers.addListener((observable, oldValue, newValue) -> {
+            if (oldValue.intValue() > newValue.intValue())
+                notifyChart();
+        });
+
         serverManager.addPlayerCountListener(this::updateMonitorStats);
-
-        availablePlayers.addListener((observable, oldValue, newValue) -> availableCountLabel.setText(availablePlayers.get() + ""));
-        offlinePlayers.addListener((observable, oldValue, newValue) -> offlineCountLabel.setText(offlinePlayers.get() + ""));
-        connectedPlayers.addListener((observable, oldValue, newValue) -> connectedCountLabel.setText(connectedPlayers.get() + ""));
-        inGamePlayers.addListener((observable, oldValue, newValue) -> inGameCountLabel.setText(inGamePlayers.get() + ""));
-
-
-        List<ActivityPoint> points = statsService.getOnlinePlayersCountPerMinute();
-        mapDataToChart(points);
+        updateMonitorStats();
+        notifyChart();
 
     }
 
@@ -212,20 +219,17 @@ public class DashboardController implements Initializable {
 
     @FXML
     private void onRange5m() {
-        List<ActivityPoint> points = statsService.getOnlinePlayersCountPerMinute();
-        mapDataToChart(points);
+        notifyChart();
     }
 
     @FXML
     private void onRange30m() {
-        List<ActivityPoint> points = statsService.getOnlinePlayersCountPerMinute();
-        mapDataToChart(points);
+        notifyChart();
     }
 
     @FXML
     private void onRange24h() {
-        List<ActivityPoint> points = statsService.getOnlinePlayersCountPerHour();
-        mapDataToChart(points);
+        notifyChart();
     }
 
     private void showAlert(Alert.AlertType type, String header, String message) {
@@ -246,30 +250,43 @@ public class DashboardController implements Initializable {
         });
     }
 
+    private void notifyChart() {
+        List<ActivityPoint> points;
 
-    /**
-     * Main function that takes a list of points and updates the entire chart.
-     *
-     * @param points The list of data points to display.
-     */
-    public void mapDataToChart(List<ActivityPoint> points) {
+        int selectedMode = 30;
+
+        if (range5mBtn.isSelected())
+            selectedMode = 5;
+        else if (range24hBtn.isSelected())
+            selectedMode = 24;
+
+
+        points = switch (selectedMode) {
+            case 5 -> statsService.getLast5MinutesPoints();
+            case 24 -> statsService.getLast24HoursPoints();
+            default -> statsService.getLast30MinutesPoints();
+        };
+
+        mapDataToChart(points);
+
+        if (chartUpdater != null)
+            chartUpdater.stopTask();
+        setChartUpdater(selectedMode);
+        startChartUpdater(selectedMode);
+    }
+
+    private void mapDataToChart(List<ActivityPoint> points) {
         updateRangeInterval(points);
         updatePlayersCount(points);
     }
 
-    /**
-     * Updates the X-Axis and populates the chart series data.
-     */
     private void updateRangeInterval(List<ActivityPoint> points) {
-        // Clear old data
         lineChart.getData().clear();
 
         XYChart.Series<String, Number> series = new XYChart.Series<>();
-        series.setName("Players");
+        series.setName("Online Players");
 
         for (ActivityPoint point : points) {
-            // Convert the int 'hour' to String for the CategoryAxis
-            // You can format this string differently if 'hour' represents minutes/timestamps
             String label = String.valueOf(point.getHour());
             series.getData().add(new XYChart.Data<>(label, point.getPlayerCount()));
         }
@@ -277,23 +294,64 @@ public class DashboardController implements Initializable {
         lineChart.getData().add(series);
     }
 
-    /**
-     * Updates the Y-Axis scaling based on the maximum player count in the list.
-     */
     private void updatePlayersCount(List<ActivityPoint> points) {
-        int maxPlayers = 0;
+        int maxPlayers = points.stream()
+                .mapToInt(ActivityPoint::getPlayerCount)
+                .max()
+                .orElse(0);
 
-        // Find the maximum value
-        for (ActivityPoint point : points) {
-            if (point.getPlayerCount() > maxPlayers) {
-                maxPlayers = point.getPlayerCount();
-            }
-        }
+        int upperBound = maxPlayers + (maxPlayers < 5 ? 2 : 5);
+        int tickUnit = Math.max(1, upperBound / 10);
 
-        // Adjust Y-Axis Logic (0 to Max + 5)
         yAxis.setAutoRanging(false);
         yAxis.setLowerBound(0);
-        yAxis.setUpperBound(maxPlayers + 5);
-        yAxis.setTickUnit(5);
+        yAxis.setUpperBound(upperBound);
+        yAxis.setTickUnit(tickUnit);
+    }
+
+    private void setChartUpdater(int selectedMode) {
+        Runnable task;
+        task = switch (selectedMode) {
+            case 5 -> () -> {
+                Platform.runLater(() -> {
+                    List<ActivityPoint> points = statsService.getLast5MinutesPoints();
+                    mapDataToChart(points);
+                });
+            };
+            case 24 -> () -> {
+                Platform.runLater(() -> {
+                    List<ActivityPoint> points = statsService.getLast24HoursPoints();
+                    mapDataToChart(points);
+                });
+            };
+            default -> () -> {
+                Platform.runLater(() -> {
+                    List<ActivityPoint> points = statsService.getLast30MinutesPoints();
+                    mapDataToChart(points);
+                });
+            };
+        };
+
+        if (chartUpdater == null) {
+            chartUpdater = new BackgroundTaskScheduler(task);
+            return;
+        }
+
+        chartUpdater.setTask(task);
+    }
+
+    private void startChartUpdater(int selectedMode) {
+        switch (selectedMode) {
+            case 5:
+                chartUpdater.startTask(1, TimeUnit.MINUTES);
+                break;
+            case 24:
+                chartUpdater.startTask(1, TimeUnit.HOURS);
+                break;
+            default:
+                chartUpdater.startTask(5, TimeUnit.MINUTES);
+                break;
+        }
+        ;
     }
 }

@@ -125,6 +125,11 @@ public class GameServerManager {
         }
     }
 
+    public void terminate(){
+        stop();
+        thread.interrupt();
+    }
+
     public void broadcastPlayerList() {
         synchronized (lock) {
             for (PlayerConnectionHandler player : players) {

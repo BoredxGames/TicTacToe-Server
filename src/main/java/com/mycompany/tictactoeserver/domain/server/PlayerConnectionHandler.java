@@ -20,13 +20,14 @@ public class PlayerConnectionHandler {
     private static final GameServerManager serverManager = GameServerManager.getInstance();
     private Player player;
     private final PlayerRunnable runnable;
+    private final Thread thread;
     private PlayerStatus status = PlayerStatus.OFFLINE;
 
 
     PlayerConnectionHandler(Socket socket) {
         runnable = new PlayerRunnable(socket, this::receiveMessageFromPlayer, this::onCloseRunnable);
 
-        Thread thread = new Thread(runnable);
+        thread = new Thread(runnable);
 
         thread.start();
     }
@@ -46,7 +47,8 @@ public class PlayerConnectionHandler {
     public void close() {
         runnable.setRunning(false);
         runnable.close();
-         setStatus(PlayerStatus.OFFLINE);
+        thread.interrupt();
+        setStatus(PlayerStatus.OFFLINE);
     }
 
     private void onCloseRunnable() {

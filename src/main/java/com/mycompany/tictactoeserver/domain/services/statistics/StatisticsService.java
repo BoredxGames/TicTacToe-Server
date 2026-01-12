@@ -10,8 +10,11 @@ import com.mycompany.tictactoeserver.domain.services.player.PlayerService;
 import com.mycompany.tictactoeserver.domain.services.playerSession.PlayerSessionService;
 
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.List;
+import java.util.logging.Logger;
+
 /**
  *
  * @author Tasneem
@@ -27,67 +30,69 @@ public class StatisticsService {
         this.playerSessionService = new PlayerSessionService();
     }
 
-    public List<ActivityPoint> getOnlinePlayersCountPerHour() {
+    public List<ActivityPoint> getLast5MinutesPoints() {
+        System.out.println("--- Starting calculation for Last 5 Minutes ---");
+        return calculateTrafficPoints(5, ChronoUnit.MINUTES);
+    }
+
+    public List<ActivityPoint> getLast30MinutesPoints() {
+        System.out.println("--- Starting calculation for Last 30 Minutes ---");
+        return calculateTrafficPoints(30, ChronoUnit.MINUTES);
+    }
+
+    public List<ActivityPoint> getLast24HoursPoints() {
+        System.out.println("--- Starting calculation for Last 24 Hours ---");
+        return calculateTrafficPoints(24, ChronoUnit.HOURS);
+    }
+
+    private List<ActivityPoint> calculateTrafficPoints(int rangeAmount, ChronoUnit unit) {
         LocalDateTime now = LocalDateTime.now();
-        LocalDateTime twentyFourHoursAgo = now.minusHours(24);
+        LocalDateTime rangeStart = now.minus(rangeAmount, unit);
 
-        List<Session> recentSessions = playerSessionService.getSessionsByDateRange(twentyFourHoursAgo, now);
+        List<Session> sessions = playerSessionService.getSessionsByDateRange(rangeStart, now);
 
-        if (recentSessions.isEmpty()) {
+        if (sessions.isEmpty()) {
+            System.out.println("No sessions found for the last " + rangeAmount + " " + unit + ". Returning empty list.");
             return new ArrayList<>();
         }
 
+        System.out.println("Found " + sessions.size() + " total sessions. Processing buckets...");
+
         List<ActivityPoint> activityPoints = new ArrayList<>();
 
-        for (int i = 0; i < 24; i++) {
-            LocalDateTime hourStart = twentyFourHoursAgo.plusHours(i).withMinute(0).withSecond(0).withNano(0);
-            LocalDateTime hourEnd = hourStart.plusHours(1);
-            int playersOnline = 0;
+        for (int i = 0; i < rangeAmount; i++) {
+            LocalDateTime bucketStart = rangeStart.plus(i, unit);
+            LocalDateTime bucketEnd = bucketStart.plus(1, unit);
 
-            for (Session session : recentSessions) {
-                LocalDateTime sessionStart = session.getStartTime();
-                LocalDateTime sessionEnd = session.getEndTime() != null ? session.getEndTime() : now;
+            int playersOnline = countOverlappingSessions(sessions, bucketStart, bucketEnd, now);
 
-                if (sessionStart.isBefore(hourEnd) && sessionEnd.isAfter(hourStart)) {
-                    playersOnline++;
-                }
-            }
+            int timeLabel = (unit == ChronoUnit.HOURS) ? bucketStart.getHour() : bucketStart.getMinute();
 
-            activityPoints.add(new ActivityPoint(hourStart.getHour(), playersOnline));
+            activityPoints.add(new ActivityPoint(timeLabel, playersOnline));
+        }
+
+        System.out.println("Finished. Generated " + activityPoints.size() + " points.");
+        if (!activityPoints.isEmpty()) {
+            System.out.println("Latest point player count: " + activityPoints.get(activityPoints.size() - 1).getPlayerCount());
         }
 
         return activityPoints;
     }
-    public List<ActivityPoint> getOnlinePlayersCountPerMinute() {
-        LocalDateTime now = LocalDateTime.now();
-        LocalDateTime thirtyMinutesAgo = now.minusMinutes(30);
 
-        List<Session> recentSessions = playerSessionService.getSessionsByDateRange(thirtyMinutesAgo, now);
+    private int countOverlappingSessions(List<Session> sessions, LocalDateTime bucketStart, LocalDateTime bucketEnd, LocalDateTime now) {
+        int count = 0;
+        ArrayList<String> uniquePlayersIDs = new ArrayList<>();
+        for (Session session : sessions) {
+            LocalDateTime sessionStart = session.getStartTime();
+            LocalDateTime sessionEnd = (session.getEndTime() != null) ? session.getEndTime() : now;
+            String playerID = session.getPlayerId();
 
-        if (recentSessions.isEmpty()) {
-            return new ArrayList<>();
-        }
-
-        List<ActivityPoint> activityPoints = new ArrayList<>();
-
-        for (int i = 0; i < 30; i++) {
-            LocalDateTime minuteStart = thirtyMinutesAgo.plusHours(0).withMinute(i).withSecond(0).withNano(0);
-            LocalDateTime minuteEnd = minuteStart.plusMinutes(1);
-            int playersOnline = 0;
-
-            for (Session session : recentSessions) {
-                LocalDateTime sessionStart = session.getStartTime();
-                LocalDateTime sessionEnd = session.getEndTime() != null ? session.getEndTime() : now;
-
-                if (sessionStart.isBefore(minuteEnd) && sessionEnd.isAfter(minuteStart)) {
-                    playersOnline++;
-                }
+            if (sessionStart.isBefore(bucketEnd) && sessionEnd.isAfter(bucketStart) && !uniquePlayersIDs.contains(playerID)) {
+                uniquePlayersIDs.add(playerID);
+                count++;
             }
-
-            activityPoints.add(new ActivityPoint(minuteStart.getMinute(), playersOnline));
         }
-
-        return activityPoints;
+        return count;
     }
 
     public List<PlayerEntity> getLeaderboard() {

@@ -1,8 +1,10 @@
 package com.mycompany.tictactoeserver;
 
 import com.mycompany.tictactoeserver.datasource.database.Database;
+import com.mycompany.tictactoeserver.domain.server.GameServerManager;
 import com.mycompany.tictactoeserver.domain.services.communication.MessageRouter;
 import com.mycompany.tictactoeserver.domain.utils.DeviceManager;
+import com.mycompany.tictactoeserver.domain.utils.exception.DatabaeDisConnectionException;
 import com.mycompany.tictactoeserver.domain.utils.exception.DatabaseConnectionException;
 import com.mycompany.tictactoeserver.domain.utils.exception.ExceptionHandlerMiddleware;
 import java.io.IOException;
@@ -24,6 +26,17 @@ public class App extends Application {
         scene = new Scene(loadFXML("dashboard"), 1600, 900);
         stage.setScene(scene);
         stage.show();
+
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            System.out.println("JVM is shutting down! Cleaning up...");
+            GameServerManager.getInstance().terminate();
+        }));
+    }
+
+    @Override
+    public void stop() throws Exception {
+        GameServerManager.getInstance().terminate();
+        super.stop();
     }
 
 
@@ -53,6 +66,7 @@ public class App extends Application {
             Database.getInstance().connect();
         } catch (DatabaseConnectionException e) {
             ExceptionHandlerMiddleware.getInstance().handleException(e);
+            System.exit(1);
         }
 
         MessageRouter.getInstance();
