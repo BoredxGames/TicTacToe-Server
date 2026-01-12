@@ -1,11 +1,12 @@
 package com.mycompany.tictactoeserver.domain.server;
-
 import com.google.gson.Gson;
 import com.mycompany.tictactoeserver.datasource.model.Player;
 import com.mycompany.tictactoeserver.domain.entity.PlayerEntity;
 import com.mycompany.tictactoeserver.domain.entity.PlayerStatus;
 import com.mycompany.tictactoeserver.domain.services.communication.*;
 import com.mycompany.tictactoeserver.domain.services.communication.MessageRouter;
+import com.mycompany.tictactoeserver.domain.services.game.GameManager;
+import com.mycompany.tictactoeserver.domain.services.statistics.StatisticsService;
 import com.mycompany.tictactoeserver.domain.utils.callbacks.PlayerHandlerCallback;
 import com.mycompany.tictactoeserver.domain.utils.exception.ExceptionHandlerMiddleware;
 import com.mycompany.tictactoeserver.domain.utils.exception.PlayerSendMessageException;
@@ -14,8 +15,8 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
+import java.util.List;
 import java.util.Vector;
-
 public class GameServerManager {
     private final Vector<PlayerConnectionHandler> players = new Vector<>();
     public Thread thread;
@@ -63,6 +64,34 @@ private final Gson gson = new Gson();
     }
     return available;
 }
+    public Message getLeaderboardMessage() {
+        StatisticsService statsService = new StatisticsService();
+    
+        List<PlayerEntity> topPlayersList = statsService.getLeaderboard();
+    
+    Vector<PlayerEntity> leaderboardVector = new Vector<>(topPlayersList);
+
+    AvailablePlayersInfo info = new AvailablePlayersInfo(leaderboardVector, null, null);
+    
+    return Message.createMessage(MessageType.RESPONSE, Action.GET_LEADERBOARD, info);
+}
+
+public void broadcastLeaderboard() {
+    Message msg = getLeaderboardMessage();
+    String jsonMsg = gson.toJson(msg);
+    
+    synchronized (lock) {
+        for (PlayerConnectionHandler player : players) {
+            try {
+                if (player.getPlayer() != null) { 
+                    player.sendMessageToPlayer(jsonMsg);
+                }
+            } catch (Exception e) {
+                System.out.println("Error broadcasting leaderboard: " + e.getMessage());
+            }
+        }
+    }
+}
 public Message getAvailablePlayersMessage(PlayerConnectionHandler requester) {
     Vector<PlayerEntity> online = new Vector<>();
     Vector<PlayerEntity> inGame = new Vector<>();
@@ -90,15 +119,12 @@ public Message getAvailablePlayersMessage(PlayerConnectionHandler requester) {
     return Message.createMessage(MessageType.RESPONSE, Action.GET_AVAILABLE_PLAYERS, info);
 }
 
-
-
     public void start() {
         synchronized (lock) {
             System.out.println("Starting GameServerManager");
             runnable.toggleRunning();
         }
     }
-
     public void stop() {
         System.out.println("Stopping GameServerManager");
         runnable.toggleRunning();
@@ -159,6 +185,7 @@ ServerInterruptException interruptException = new ServerInterruptException(e.get
     }
 
     public void removePlayer(PlayerConnectionHandler player) {
+        GameManager.getInstance().handlePlayerDisconnect(player);
         synchronized (lock) {
             players.remove(player);
         }
