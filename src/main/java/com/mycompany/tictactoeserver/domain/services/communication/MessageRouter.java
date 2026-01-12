@@ -2,7 +2,6 @@ package com.mycompany.tictactoeserver.domain.services.communication;
 
 import com.google.gson.Gson;
 import com.mycompany.tictactoeserver.domain.entity.AuthRequestEntity;
-import com.mycompany.tictactoeserver.domain.entity.PlayerStatus;
 import com.mycompany.tictactoeserver.domain.server.GameServerManager;
 import com.mycompany.tictactoeserver.domain.server.PlayerConnectionHandler;
 import com.mycompany.tictactoeserver.domain.services.authentication.AuthenticationService;
@@ -82,8 +81,10 @@ public class MessageRouter {
 
                 AuthRequestEntity auth = gson.fromJson(message.getData(), AuthRequestEntity.class);
 
-                AuthenticationService.getInstance().register(auth);
-
+             
+               Message response=   AuthenticationService.getInstance().register(auth);
+               String msg = gson.toJson(response);
+               sender.sendMessageToPlayer(msg);
             }
             case GET_AVAILABLE_PLAYERS -> {
     Message response = server.getAvailablePlayersMessage(sender);

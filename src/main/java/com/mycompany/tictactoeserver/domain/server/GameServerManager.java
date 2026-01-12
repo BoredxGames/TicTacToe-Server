@@ -18,17 +18,19 @@ import java.net.SocketException;
 import java.util.List;
 import java.util.Vector;
 public class GameServerManager {
+
     private final Vector<PlayerConnectionHandler> players = new Vector<>();
     public Thread thread;
     private final ServerRunnable runnable;
-private final Gson gson = new Gson();
+    private final Gson gson = new Gson();
     private final Object lock = new Object();
 
     private static GameServerManager instance;
-    
 
     public static GameServerManager getInstance() {
-        if (instance == null) instance = new GameServerManager();
+        if (instance == null) {
+            instance = new GameServerManager();
+        }
         return instance;
     }
 
@@ -42,25 +44,29 @@ private final Gson gson = new Gson();
     public boolean isRunning() {
         return runnable.isRunning();
     }
+
     public PlayerConnectionHandler getPlayerById(String playerId) {
-    synchronized (lock) {
-        for (PlayerConnectionHandler player : players) {
-            if (player.getPlayer() != null &&
-                player.getPlayer().getId().equals(playerId)) {
-                return player;
+        synchronized (lock) {
+            for (PlayerConnectionHandler player : players) {
+                if (player.getPlayer() != null
+                        && player.getPlayer().getId().equals(playerId)) {
+                    return player;
+                }
             }
         }
+        return null;
     }
-    return null;
-}
+
     public Vector<Player> getAvailablePlayerData() {
-    Vector<Player> available = new Vector<>();
-    synchronized (lock) {
-        for (PlayerConnectionHandler handler : players) {
-            if (handler.getStatus() == PlayerStatus.ONLINE && handler.getPlayer() != null) {
-                available.add(handler.getPlayer());
+        Vector<Player> available = new Vector<>();
+        synchronized (lock) {
+            for (PlayerConnectionHandler handler : players) {
+                if (handler.getStatus() == PlayerStatus.ONLINE && handler.getPlayer() != null) {
+                    available.add(handler.getPlayer());
+                }
             }
         }
+        return available;
     }
     return available;
 }
@@ -97,22 +103,37 @@ public Message getAvailablePlayersMessage(PlayerConnectionHandler requester) {
     Vector<PlayerEntity> inGame = new Vector<>();
     Vector<PlayerEntity> pending = new Vector<>();
 
-    synchronized (lock) {
-        for (PlayerConnectionHandler handler : players) {
-            if (handler.getPlayer() == null) continue;
 
-            if (requester.getPlayer() != null && 
-                handler.getPlayer().getId().equals(requester.getPlayer().getId())) {
-                continue;
-            }
-            PlayerEntity player= new PlayerEntity(handler.getPlayer().getId(),handler.getPlayer().getUsername(),handler.getPlayer().getScore());
+    public Message getAvailablePlayersMessage(PlayerConnectionHandler requester) {
+        Vector<PlayerEntity> online = new Vector<>();
+        Vector<PlayerEntity> inGame = new Vector<>();
+        Vector<PlayerEntity> pending = new Vector<>();
 
-            switch (handler.getStatus()) {
-                case ONLINE -> online.add(player);
-                case IN_GAME -> inGame.add(player);
-                case PENDING -> pending.add(player);
+        synchronized (lock) {
+            for (PlayerConnectionHandler handler : players) {
+                if (handler.getPlayer() == null) {
+                    continue;
+                }
+
+                if (requester.getPlayer() != null
+                        && handler.getPlayer().getId().equals(requester.getPlayer().getId())) {
+                    continue;
+                }
+                PlayerEntity player = new PlayerEntity(handler.getPlayer().getId(), handler.getPlayer().getUsername(), handler.getPlayer().getScore());
+
+                switch (handler.getStatus()) {
+                    case ONLINE ->
+                        online.add(player);
+                    case IN_GAME ->
+                        inGame.add(player);
+                    case PENDING ->
+                        pending.add(player);
+                }
             }
         }
+
+        AvailablePlayersInfo info = new AvailablePlayersInfo(online, inGame, pending);
+        return Message.createMessage(MessageType.RESPONSE, Action.GET_AVAILABLE_PLAYERS, info);
     }
 
     AvailablePlayersInfo info = new AvailablePlayersInfo(online, inGame, pending);
@@ -139,6 +160,7 @@ public Message getAvailablePlayersMessage(PlayerConnectionHandler requester) {
             p.close();
         }
     }
+
     public void broadcastPlayerList() {
         synchronized (lock) {
             for (PlayerConnectionHandler player : players) {
@@ -147,8 +169,9 @@ public Message getAvailablePlayersMessage(PlayerConnectionHandler requester) {
                     try {
                         player.sendMessageToPlayer(gson.toJson(msg));
                     } catch (Exception e) {
-ServerInterruptException interruptException = new ServerInterruptException(e.getStackTrace());
-            ExceptionHandlerMiddleware.getInstance().handleException(interruptException);                    }
+                        ServerInterruptException interruptException = new ServerInterruptException(e.getStackTrace());
+                        ExceptionHandlerMiddleware.getInstance().handleException(interruptException);
+                    }
                 }
             }
         }
@@ -189,7 +212,7 @@ ServerInterruptException interruptException = new ServerInterruptException(e.get
         synchronized (lock) {
             players.remove(player);
         }
-         broadcastPlayerList(); 
+        broadcastPlayerList();
     }
 
     public int getOnlinePlayersCount() {
@@ -197,9 +220,22 @@ ServerInterruptException interruptException = new ServerInterruptException(e.get
             return players.size();
         }
     }
+
+    public boolean isPlayerOnline(String username) {
+        synchronized (lock) {
+            for (PlayerConnectionHandler player : players) {
+                
+                if (player.getPlayer()!=null&&username.equals(player.getPlayer().getUsername())) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
 }
 
 class ServerRunnable implements Runnable {
+
     private volatile ServerSocket serverSocket;
     PlayerHandlerCallback onAdd;
 
@@ -250,8 +286,7 @@ class ServerRunnable implements Runnable {
                     PlayerConnectionHandler player = new PlayerConnectionHandler(clientSocket);
                     onAdd.call(player);
                     System.out.println("Client Connected: " + clientSocket.getInetAddress().getHostAddress());
-                    
-                   
+
                 } else {
                     clientSocket.close();
                 }
@@ -263,4 +298,5 @@ class ServerRunnable implements Runnable {
             }
         }
     }
+
 }
