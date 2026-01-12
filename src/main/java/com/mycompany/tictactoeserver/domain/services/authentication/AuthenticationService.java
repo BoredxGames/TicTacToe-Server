@@ -63,9 +63,7 @@ public class AuthenticationService {
             playerDao.insert(newPlayer);
 
             AuthResponseEntity responseEntity = new AuthResponseEntity(newPlayer);
-            response = Message.createMessage(MessageType.RESPONSE, Action.REGISTERATION_SUCCESS, responseEntity);
-            GameServerManager.getInstance().broadcastLeaderboard();
-            
+            response = Message.createMessage(MessageType.RESPONSE, Action.REGISTERATION_SUCCESS, responseEntity);       
 
         } catch (HashingException ex) {
             ServerInterruptException customException = new ServerInterruptException(ex.getStackTrace());
