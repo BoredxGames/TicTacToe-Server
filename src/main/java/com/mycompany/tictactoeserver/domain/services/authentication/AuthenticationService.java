@@ -61,6 +61,8 @@ public class AuthenticationService {
 
             AuthResponseEntity responseEntity = new AuthResponseEntity(newPlayer);
             response = Message.createMessage(MessageType.RESPONSE, Action.REGISTERATION_SUCCESS, responseEntity);
+            GameServerManager.getInstance().broadcastLeaderboard();
+            
 
         } catch (HashingException ex) {
             ServerInterruptException customException = new ServerInterruptException(ex.getStackTrace());
@@ -68,6 +70,7 @@ public class AuthenticationService {
 
             response = Message.createMessage(MessageType.ERROR, Action.INTERNAL_SERVER_ERROR, credential);
         }
+        
         return response;
     }
 
@@ -85,11 +88,7 @@ public class AuthenticationService {
                 response = Message.createMessage(MessageType.ERROR, Action.USERNAME_NOT_FOUND, credential);
                 return response;
             }
-if (clientSession != null) {
-                clientSession.setPlayer(player);       
-                clientSession.setStatus(PlayerStatus.ONLINE);
-            }
-            GameServerManager.getInstance().broadcastPlayerList();
+
             String hashedPassword = ServerSecurityManager.hashText(credential.getPassword());
             if (!hashedPassword.equals(player.getPassword())) {
               
@@ -100,6 +99,11 @@ if (clientSession != null) {
 
             AuthResponseEntity responseEntity = new AuthResponseEntity(player);
             response = Message.createMessage(MessageType.RESPONSE, Action.LOGIN_SUCCESS, responseEntity);
+            if (clientSession != null) {
+                clientSession.setPlayer(player);       
+                clientSession.setStatus(PlayerStatus.ONLINE);
+            }
+            GameServerManager.getInstance().broadcastPlayerList();
 
         } catch (HashingException ex) {
             ServerInterruptException customException = new ServerInterruptException(ex.getStackTrace());

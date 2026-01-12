@@ -78,6 +78,7 @@ public class MessageRouter {
 
             case REGISTER -> {
                 System.out.println("come reg");
+                
 
                 AuthRequestEntity auth = gson.fromJson(message.getData(), AuthRequestEntity.class);
 
@@ -95,6 +96,10 @@ public class MessageRouter {
             sender.sendMessageToPlayer(gson.toJson(response));
 
 }
+            case GET_LEADERBOARD -> {
+    Message response = server.getLeaderboardMessage();
+    sender.sendMessageToPlayer(gson.toJson(response));
+}
              
 
             default -> {
@@ -110,10 +115,12 @@ public class MessageRouter {
     switch (action) {
 
         case GAME_RESPONSE -> {
+            
             GameResponseInfo requestInfo = gson.fromJson(msg.getData(), GameResponseInfo.class);
             response = GameManager.getInstance().handleGameResponse(requestInfo, sender);
-            sender.sendMessageToPlayer(gson.toJson(response));
-        }
+if (response != null) {
+                sender.sendMessageToPlayer(gson.toJson(response));
+            }        }
 
         case SEND_GAME_UPDATE -> {
             MoveInfo moveInfo = gson.fromJson(msg.getData(), MoveInfo.class);
