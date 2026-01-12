@@ -1,4 +1,5 @@
 package com.mycompany.tictactoeserver.domain.server;
+
 import com.google.gson.Gson;
 import com.mycompany.tictactoeserver.datasource.model.Player;
 import com.mycompany.tictactoeserver.domain.entity.PlayerEntity;
@@ -68,8 +69,7 @@ public class GameServerManager {
         }
         return available;
     }
-    return available;
-}
+
     public Message getLeaderboardMessage() {
         StatisticsService statsService = new StatisticsService();
     
@@ -98,16 +98,11 @@ public void broadcastLeaderboard() {
         }
     }
 }
+
 public Message getAvailablePlayersMessage(PlayerConnectionHandler requester) {
     Vector<PlayerEntity> online = new Vector<>();
     Vector<PlayerEntity> inGame = new Vector<>();
     Vector<PlayerEntity> pending = new Vector<>();
-
-
-    public Message getAvailablePlayersMessage(PlayerConnectionHandler requester) {
-        Vector<PlayerEntity> online = new Vector<>();
-        Vector<PlayerEntity> inGame = new Vector<>();
-        Vector<PlayerEntity> pending = new Vector<>();
 
         synchronized (lock) {
             for (PlayerConnectionHandler handler : players) {
@@ -134,10 +129,7 @@ public Message getAvailablePlayersMessage(PlayerConnectionHandler requester) {
 
         AvailablePlayersInfo info = new AvailablePlayersInfo(online, inGame, pending);
         return Message.createMessage(MessageType.RESPONSE, Action.GET_AVAILABLE_PLAYERS, info);
-    }
 
-    AvailablePlayersInfo info = new AvailablePlayersInfo(online, inGame, pending);
-    return Message.createMessage(MessageType.RESPONSE, Action.GET_AVAILABLE_PLAYERS, info);
 }
 
     public void start() {

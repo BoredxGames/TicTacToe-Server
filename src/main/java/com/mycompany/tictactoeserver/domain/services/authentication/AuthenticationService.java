@@ -118,7 +118,7 @@ public class AuthenticationService {
 
             }
 
-            }
+            
         } catch (HashingException ex) {
             ServerInterruptException customException = new ServerInterruptException(ex.getStackTrace());
             ExceptionHandlerMiddleware.getInstance().handleException(customException);
