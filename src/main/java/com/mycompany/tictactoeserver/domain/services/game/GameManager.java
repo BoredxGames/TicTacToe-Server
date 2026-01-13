@@ -132,7 +132,11 @@ target.sendMessageToPlayer(gson.toJson(eventToTarget));
                 GameServerManager.getInstance().broadcastPlayerList();
                 GameServerManager.getInstance().runCallbacks();
 
-                return Message.createMessage(MessageType.RESPONSE, Action.GAME_RESPONSE, requestInfo);
+              Message refusalMsg = Message.createMessage(MessageType.RESPONSE, Action.GAME_RESPONSE, requestInfo);
+           
+            requester.sendMessageToPlayer(gson.toJson(refusalMsg)); 
+
+            return null;
             }
 
             return startGame(requester, responder);
@@ -205,7 +209,6 @@ target.sendMessageToPlayer(gson.toJson(eventToTarget));
             if (opponent == null) {
                 return Message.createMessage(MessageType.ERROR, Action.INVALID_OPPONENT, moveInfo);
             }
-
             Message msg = Message.createMessage(MessageType.RESPONSE, Action.SEND_GAME_UPDATE, moveInfo);
             opponent.sendMessageToPlayer(gson.toJson(msg));
 
@@ -217,6 +220,74 @@ target.sendMessageToPlayer(gson.toJson(eventToTarget));
             return Message.createMessage(MessageType.ERROR, Action.INTERNAL_SERVER_ERROR, moveInfo);
         }
     }
+
+public void handlePlayerDisconnect(PlayerConnectionHandler disconnectedPlayer) {
+    if (disconnectedPlayer == null) return;
+
+    System.out.println("Handling disconnect for: " + 
+        (disconnectedPlayer.getPlayer() != null ? disconnectedPlayer.getPlayer().getUsername() : "Unknown"));
+
+    
+    GameRequest foundRequest = null;
+    synchronized (lock) {
+        for (GameRequest req : pendingRequests) {
+            if (req.requester.equals(disconnectedPlayer) || req.target.equals(disconnectedPlayer)) {
+                foundRequest = req;
+                break;
+            }
+        }
+        if (foundRequest != null) {
+            pendingRequests.remove(foundRequest);
+        }
+    }
+
+    if (foundRequest != null) {
+        PlayerConnectionHandler opponent = (foundRequest.requester.equals(disconnectedPlayer)) 
+                                         ? foundRequest.target 
+                                         : foundRequest.requester;
+        
+        opponent.setStatus(PlayerStatus.ONLINE);
+        GameServerManager.getInstance().broadcastPlayerList();
+
+        try {
+       
+            Message msg = Message.createMessage(MessageType.ERROR, Action.INVALID_OPPONENT, null);
+            opponent.sendMessageToPlayer(gson.toJson(msg));
+        } catch (Exception e) {
+            System.out.println("Failed to notify opponent of pending disconnect: " + e.getMessage());
+        }
+    }
+
+  
+    GameRoom foundRoom = null;
+    synchronized (lock) {
+        for (GameRoom room : activeRooms) {
+            if (room.getPlayer1().equals(disconnectedPlayer) || room.getPlayer2().equals(disconnectedPlayer)) {
+                foundRoom = room;
+                break;
+            }
+        }
+        if (foundRoom != null) {
+            activeRooms.remove(foundRoom);
+        }
+    }
+
+    if (foundRoom != null) {
+        PlayerConnectionHandler survivor = (foundRoom.getPlayer1().equals(disconnectedPlayer)) 
+                                         ? foundRoom.getPlayer2() 
+                                         : foundRoom.getPlayer1();
+
+        survivor.setStatus(PlayerStatus.ONLINE);
+        GameServerManager.getInstance().broadcastPlayerList();
+
+        try {
+            Message msg = Message.createMessage(MessageType.ERROR, Action.INVALID_OPPONENT, null);
+            survivor.sendMessageToPlayer(gson.toJson(msg));
+        } catch (Exception e) {
+            System.out.println("Failed to notify survivor of game disconnect: " + e.getMessage());
+        }
+    }
+}
 
  
    
