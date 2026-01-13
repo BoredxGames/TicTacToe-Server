@@ -12,6 +12,7 @@ public class MoveInfo {
     private final String roomId;
     private final String playerId;
     private final Object move;
+    
 
     public MoveInfo(String playerId, Object move, String roomId) {
         this.playerId = playerId;

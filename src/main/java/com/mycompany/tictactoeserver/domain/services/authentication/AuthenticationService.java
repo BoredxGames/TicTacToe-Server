@@ -63,7 +63,7 @@ public class AuthenticationService {
             playerDao.insert(newPlayer);
 
             AuthResponseEntity responseEntity = new AuthResponseEntity(newPlayer);
-            response = Message.createMessage(MessageType.RESPONSE, Action.REGISTERATION_SUCCESS, responseEntity);
+            response = Message.createMessage(MessageType.RESPONSE, Action.REGISTERATION_SUCCESS, responseEntity);       
 
         } catch (HashingException ex) {
             ServerInterruptException customException = new ServerInterruptException(ex.getStackTrace());
@@ -74,6 +74,7 @@ public class AuthenticationService {
              response = Message.createMessage(MessageType.ERROR, Action.INTERNAL_SERVER_ERROR, credential);
                 return response;
         }
+        
         return response;
     }
 
@@ -92,6 +93,7 @@ public class AuthenticationService {
                 return response;
             }
 
+
             GameServerManager.getInstance().broadcastPlayerList();
             String hashedPassword = ServerSecurityManager.hashText(credential.getPassword());
             if (!hashedPassword.equals(player.getPassword())) {
@@ -108,9 +110,13 @@ public class AuthenticationService {
             AuthResponseEntity responseEntity = new AuthResponseEntity(player);
             response = Message.createMessage(MessageType.RESPONSE, Action.LOGIN_SUCCESS, responseEntity);
             if (clientSession != null) {
-                clientSession.setPlayer(player);
+                clientSession.setPlayer(player);       
                 clientSession.setStatus(PlayerStatus.ONLINE);
+			 GameServerManager.getInstance().broadcastPlayerList();
+
             }
+
+            
         } catch (HashingException ex) {
             ServerInterruptException customException = new ServerInterruptException(ex.getStackTrace());
             ExceptionHandlerMiddleware.getInstance().handleException(customException);
