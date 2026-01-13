@@ -9,5 +9,18 @@ package com.mycompany.tictactoeserver.domain.services.game;
  * @author sheri
  */
 public class GameEndInfo {
-    
+
+    private String roomId;
+    private String winnerId; // If this is null, it means DRAW
+
+    public GameEndInfo() {
+    }
+
+    public String getRoomId() {
+        return roomId;
+    }
+
+    public String getWinnerId() {
+        return winnerId;
+    }
 }
