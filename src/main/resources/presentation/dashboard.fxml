@@ -7,7 +7,7 @@
 <?import javafx.scene.layout.*?>
 <?import org.kordamp.ikonli.javafx.*?>
 
-<BorderPane prefHeight="900" prefWidth="1600" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.mycompany.tictactoeserver.presentation.DashboardController">
+<BorderPane prefHeight="900" prefWidth="1600" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.mycompany.tictactoeserver.presentation.DashboardController">
     <stylesheets>
         <URL value="@css/dashboard-base.css" />
         <URL value="@css/dashboard-header.css" />
@@ -73,10 +73,6 @@
 
                     <ToggleButton fx:id="filterAllBtn" onAction="#onFilterAll" styleClass="filter-pill filter-pill-active" text="All" />
 
-                    <ToggleButton fx:id="filterOnlineBtn" onAction="#onFilterOnline" styleClass="filter-pill" text="Online" />
-
-                    <ToggleButton fx:id="filterOfflineBtn" onAction="#onFilterOffline" styleClass="filter-pill" text="Offline" />
-
                     <ToggleButton fx:id="filterAvailableBtn" onAction="#onFilterAvailable" styleClass="filter-pill" text="Available" />
 
                     <ToggleButton fx:id="filterInGameBtn" onAction="#onFilterInGame" styleClass="filter-pill" text="In-Game" />
@@ -84,24 +80,19 @@
 
                 <TableView fx:id="playersTable" styleClass="players-table" VBox.vgrow="ALWAYS">
                     <columns>
-                        <TableColumn fx:id="userColumn" prefWidth="250" styleClass="table-col-user" text="User" />
+                        <TableColumn fx:id="userColumn" prefWidth="498.0" styleClass="table-col-user" text="User" />
 
-                        <TableColumn fx:id="statusColumn" prefWidth="120" styleClass="table-col-status" text="Status" />
-
-                        <TableColumn fx:id="gameStateColumn" prefWidth="150" styleClass="table-col-gamestate" text="Game State" />
-
-                        <TableColumn fx:id="lastSeenColumn" prefWidth="120" styleClass="table-col-lastseen" text="Last Seen" />
+                        <TableColumn fx:id="statusColumn" prefWidth="499.0" styleClass="table-col-status" text="Status" />
                     </columns>
                 </TableView>
 
                 <HBox spacing="10" styleClass="players-footer">
-                    <Label fx:id="paginationLabel" styleClass="pagination-label" text="Showing 9 of 145 players" />
 
                     <Region HBox.hgrow="ALWAYS" />
 
                     <Button fx:id="prevPageBtn" onAction="#onPreviousPage" styleClass="pagination-btn" text="Previous" />
 
-                    <Button fx:id="nextPageBtn" onAction="#onNextPage" styleClass="pagination-btn" text="Next" />
+                    <Button fx:id="nextPageBtn" onAction="#onNextPage" prefHeight="35.0" prefWidth="84.0" styleClass="pagination-btn" text="Next" />
                 </HBox>
             </VBox>
 
@@ -176,7 +167,7 @@
                             <HBox spacing="5" styleClass="button-container">
                                 <ToggleButton fx:id="range5mBtn" onAction="#onRange5m" styleClass="range-btn" text="5m">
                                     <toggleGroup>
-                                        <ToggleGroup fx:id="timeRangeGroup"/>
+                                        <ToggleGroup fx:id="timeRangeGroup" />
                                     </toggleGroup>
                                 </ToggleButton>
 
@@ -188,12 +179,12 @@
 
                         <StackPane fx:id="playersChartPane" styleClass="chart-pane" VBox.vgrow="ALWAYS">
                             <children>
-                                <LineChart fx:id="lineChart" createSymbols="false" legendVisible="false" animated="false">
+                                <LineChart fx:id="lineChart" animated="false" createSymbols="false" legendVisible="false">
                                     <xAxis>
-                                        <CategoryAxis fx:id="xAxis" label="Time" side="BOTTOM" tickLabelGap="5.0" />
+                                        <CategoryAxis label="Time" side="BOTTOM" tickLabelGap="5.0" fx:id="xAxis" />
                                     </xAxis>
                                     <yAxis>
-                                        <NumberAxis fx:id="yAxis" label="Player Count" side="LEFT" forceZeroInRange="true" />
+                                        <NumberAxis fx:id="yAxis" forceZeroInRange="true" label="Player Count" side="LEFT" />
                                     </yAxis>
                                 </LineChart>
                             </children>
