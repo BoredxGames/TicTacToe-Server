@@ -1,0 +1,92 @@
+
+.players-table {
+    -fx-background-color: transparent;
+    -fx-base: transparent;
+    -fx-control-inner-background: transparent;
+    -fx-background-insets: 0;
+    -fx-padding: 0;
+}
+
+.players-table .virtual-flow .clipped-container .sheet {
+    -fx-background-color: transparent;
+}
+
+
+.players-table .column-header-background {
+    -fx-background-color: #111827; 
+    -fx-border-color: transparent transparent #1f2937 transparent;
+    -fx-border-width: 0 0 1px 0;
+}
+
+.players-table .column-header {
+    -fx-background-color: transparent;
+    -fx-size: 45px; 
+    -fx-border-width: 0;
+    -fx-padding: 0 10 0 10;
+}
+
+.players-table .column-header .label {
+    -fx-text-fill: #9ca3af; 
+    -fx-font-weight: 600;
+    -fx-font-size: 13px;
+    -fx-alignment: CENTER_LEFT;
+}
+
+.players-table .table-row-cell {
+    -fx-background-color: transparent; 
+    -fx-border-width: 0 0 1px 0;
+    -fx-border-color: #1f2937; 
+    -fx-cell-size: 50px; 
+}
+
+.players-table .table-row-cell:hover {
+    -fx-background-color: #1a2332; 
+    -fx-cursor: hand;
+}
+
+.players-table .table-row-cell:selected {
+    -fx-background-color: rgba(6, 182, 212, 0.15); /* Cyan tint */
+}
+
+.players-table .table-cell {
+    -fx-alignment: CENTER_LEFT;
+    -fx-padding: 0 0 0 15px;
+    -fx-border-color: transparent;
+    -fx-text-fill: #f9fafb; 
+}
+
+.players-table .table-cell .text {
+    -fx-fill: #f9fafb; 
+    -fx-font-size: 14px;
+}
+
+.table-col-status .text {
+    -fx-font-weight: 500;
+}
+
+.players-table .placeholder .label {
+    -fx-text-fill: #6b7280; 
+    -fx-font-size: 14px;
+}
+
+.players-table .scroll-bar:vertical,
+.players-table .scroll-bar:horizontal {
+    -fx-background-color: transparent;
+}
+
+.players-table .scroll-bar .track {
+    -fx-background-color: transparent;
+}
+
+.players-table .scroll-bar .thumb {
+    -fx-background-color: #374151; 
+    -fx-background-radius: 4px;
+}
+
+.players-table .scroll-bar .thumb:hover {
+    -fx-background-color: #4b5563; 
+}
+
+.players-table .corner {
+    -fx-background-color: transparent;
+}

@@ -1,13 +1,27 @@
 package com.mycompany.tictactoeserver.presentation;
 
+import com.mycompany.tictactoeserver.datasource.model.Player;
 import com.mycompany.tictactoeserver.domain.entity.ActivityPoint;
+import com.mycompany.tictactoeserver.domain.entity.PlayerRow;
 import com.mycompany.tictactoeserver.domain.server.GameServerManager;
+import com.mycompany.tictactoeserver.domain.server.PlayerConnectionHandler;
 import com.mycompany.tictactoeserver.domain.services.statistics.StatisticsService;
 import com.mycompany.tictactoeserver.domain.utils.BackgroundTaskScheduler;
 import com.mycompany.tictactoeserver.domain.utils.DeviceManager;
+import java.net.SocketException;
+import java.net.URL;
+import java.util.Arrays;
+import java.util.List;
+import java.util.ResourceBundle;
+import java.util.Vector;
+import java.util.concurrent.TimeUnit;
 import javafx.application.Platform;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleIntegerProperty;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import javafx.collections.transformation.FilteredList;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.chart.CategoryAxis;
@@ -18,12 +32,6 @@ import javafx.scene.control.*;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Pane;
 
-import java.net.SocketException;
-import java.net.URL;
-import java.util.Arrays;
-import java.util.List;
-import java.util.ResourceBundle;
-import java.util.concurrent.TimeUnit;
 
 public class DashboardController implements Initializable {
 
@@ -46,33 +54,20 @@ public class DashboardController implements Initializable {
 
     @FXML
     private ToggleButton filterAllBtn;
-    @FXML
-    private ToggleButton filterOnlineBtn;
-    @FXML
-    private ToggleButton filterOfflineBtn;
+
     @FXML
     private ToggleButton filterAvailableBtn;
     @FXML
     private ToggleButton filterInGameBtn;
 
     @FXML
-    private TableView<?> playersTable;
+    private TableView<PlayerRow> playersTable;
     @FXML
-    private TableColumn<?, ?> userColumn;
+    private TableColumn<PlayerRow, String> userColumn;
     @FXML
-    private TableColumn<?, ?> statusColumn;
-    @FXML
-    private TableColumn<?, ?> gameStateColumn;
-    @FXML
-    private TableColumn<?, ?> lastSeenColumn;
+    private TableColumn<PlayerRow, String> statusColumn;
 
-    @FXML
-    private Label paginationLabel;
-    @FXML
-    private Button prevPageBtn;
-    @FXML
-    private Button nextPageBtn;
-
+   
     @FXML
     private ScrollPane monitoringScrollPane;
 
@@ -118,18 +113,24 @@ public class DashboardController implements Initializable {
     IntegerProperty connectedPlayers = new SimpleIntegerProperty(0);
     IntegerProperty inGamePlayers = new SimpleIntegerProperty(0);
 
+    private final ObservableList<PlayerRow> playersList = FXCollections.observableArrayList();
+    
+    private FilteredList<PlayerRow> filteredData;
+    
+    private final ToggleGroup filterGroup = new ToggleGroup();
+
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         serverManager = GameServerManager.getInstance();
         statsService = new StatisticsService();
-
+        setupFilters();
+        setupTable();
         try {
             String ip = DeviceManager.getIpv4Address();
             subtitleLabel.setText("IP Address: " + ip);
         } catch (SocketException e) {
             System.out.println("Failed to get ipv4 address in main controller");
         }
-
 
         availablePlayers.addListener((observable, oldValue, newValue) -> availableCountLabel.setText(newValue + ""));
         offlinePlayers.addListener((observable, oldValue, newValue) -> offlineCountLabel.setText(newValue + ""));
@@ -138,8 +139,9 @@ public class DashboardController implements Initializable {
 
         offlinePlayers.addListener((observable, oldValue, newValue) -> notifyChart());
         connectedPlayers.addListener((observable, oldValue, newValue) -> {
-            if (oldValue.intValue() > newValue.intValue())
+            if (oldValue.intValue() > newValue.intValue()) {
                 notifyChart();
+            }
         });
 
         serverManager.addPlayerCountListener(this::updateMonitorStats);
@@ -161,14 +163,12 @@ public class DashboardController implements Initializable {
                 return;
             }
 
-
             serverManager.stop();
             serverStatusLabel.setText("STOPPED");
             serverStatusLabel.getStyleClass().removeAll("status-running");
             if (!serverStatusLabel.getStyleClass().contains("status-stopped")) {
                 serverStatusLabel.getStyleClass().add("status-stopped");
             }
-
 
         } catch (Exception e) {
             System.out.println("Msg: " + e.getMessage());
@@ -246,7 +246,7 @@ public class DashboardController implements Initializable {
             offlinePlayers.set(statsService.getOfflinePlayersCount());
             connectedPlayers.set(statsService.getConnectedPlayersCount());
             inGamePlayers.set(statsService.getInGamePlayersCount());
-
+            refreshTableData();
         });
     }
 
@@ -255,22 +255,26 @@ public class DashboardController implements Initializable {
 
         int selectedMode = 30;
 
-        if (range5mBtn.isSelected())
+        if (range5mBtn.isSelected()) {
             selectedMode = 5;
-        else if (range24hBtn.isSelected())
+        } else if (range24hBtn.isSelected()) {
             selectedMode = 24;
-
+        }
 
         points = switch (selectedMode) {
-            case 5 -> statsService.getLast5MinutesPoints();
-            case 24 -> statsService.getLast24HoursPoints();
-            default -> statsService.getLast30MinutesPoints();
+            case 5 ->
+                statsService.getLast5MinutesPoints();
+            case 24 ->
+                statsService.getLast24HoursPoints();
+            default ->
+                statsService.getLast30MinutesPoints();
         };
 
         mapDataToChart(points);
 
-        if (chartUpdater != null)
+        if (chartUpdater != null) {
             chartUpdater.stopTask();
+        }
         setChartUpdater(selectedMode);
         startChartUpdater(selectedMode);
     }
@@ -312,24 +316,27 @@ public class DashboardController implements Initializable {
     private void setChartUpdater(int selectedMode) {
         Runnable task;
         task = switch (selectedMode) {
-            case 5 -> () -> {
-                Platform.runLater(() -> {
-                    List<ActivityPoint> points = statsService.getLast5MinutesPoints();
-                    mapDataToChart(points);
-                });
-            };
-            case 24 -> () -> {
-                Platform.runLater(() -> {
-                    List<ActivityPoint> points = statsService.getLast24HoursPoints();
-                    mapDataToChart(points);
-                });
-            };
-            default -> () -> {
-                Platform.runLater(() -> {
-                    List<ActivityPoint> points = statsService.getLast30MinutesPoints();
-                    mapDataToChart(points);
-                });
-            };
+            case 5 ->
+                () -> {
+                    Platform.runLater(() -> {
+                        List<ActivityPoint> points = statsService.getLast5MinutesPoints();
+                        mapDataToChart(points);
+                    });
+                };
+            case 24 ->
+                () -> {
+                    Platform.runLater(() -> {
+                        List<ActivityPoint> points = statsService.getLast24HoursPoints();
+                        mapDataToChart(points);
+                    });
+                };
+            default ->
+                () -> {
+                    Platform.runLater(() -> {
+                        List<ActivityPoint> points = statsService.getLast30MinutesPoints();
+                        mapDataToChart(points);
+                    });
+                };
         };
 
         if (chartUpdater == null) {
@@ -353,5 +360,65 @@ public class DashboardController implements Initializable {
                 break;
         }
         ;
+    }
+
+    private void setupFilters() {
+
+        filterAllBtn.setToggleGroup(filterGroup);
+        filterAvailableBtn.setToggleGroup(filterGroup);
+        filterInGameBtn.setToggleGroup(filterGroup);
+
+        filterAllBtn.setSelected(true);
+
+        filterGroup.selectedToggleProperty().addListener((obs, oldVal, newVal) -> applyFilters());
+        searchField.textProperty().addListener((obs, oldVal, newVal) -> applyFilters());
+    }
+
+    private void applyFilters() {
+        String searchText = searchField.getText().toLowerCase().trim();
+        Toggle selectedBtn = filterGroup.getSelectedToggle();
+        filteredData.setPredicate(player -> {
+            if (!searchText.isEmpty() && !player.getUsername().toLowerCase().contains(searchText)) {
+                return false;
+            }
+            if (selectedBtn == filterAvailableBtn) {
+                return player.getStatus().equalsIgnoreCase("ONLINE");
+            }
+            if (selectedBtn == filterInGameBtn) {
+                return player.getStatus().equalsIgnoreCase("IN_GAME");
+            }
+            return true;
+        });
+    }
+
+    private void refreshTableData() {
+        playersList.clear();
+
+        Vector<PlayerConnectionHandler> connections = serverManager.getAllPlayers();
+
+        for (PlayerConnectionHandler handler : connections) {
+            Player p = handler.getPlayer();
+
+            String username = (p != null) ? p.getUsername() : "Someone connecting 😀";
+            String status = handler.getStatus().toString();
+
+            playersList.add(new PlayerRow(username, status));
+        }
+
+    }
+
+   private void setupTable() {
+        
+       
+     userColumn.setCellValueFactory(cellData -> 
+            new SimpleStringProperty(cellData.getValue().getUsername()));
+
+        statusColumn.setCellValueFactory(cellData -> 
+            new SimpleStringProperty(cellData.getValue().getStatus()));
+
+        filteredData = new FilteredList<>(playersList, p -> true);
+
+        playersTable.setItems(filteredData);
+        playersTable.setPlaceholder(new Label("No players found"));
     }
 }

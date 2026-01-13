@@ -5,9 +5,8 @@ import com.mycompany.tictactoeserver.datasource.model.Player;
 import com.mycompany.tictactoeserver.domain.entity.PlayerEntity;
 import com.mycompany.tictactoeserver.domain.entity.PlayerStatus;
 import com.mycompany.tictactoeserver.domain.services.communication.*;
-import com.mycompany.tictactoeserver.domain.services.playerSession.PlayerSessionService;
-import com.mycompany.tictactoeserver.domain.services.communication.MessageRouter;
 import com.mycompany.tictactoeserver.domain.services.game.GameManager;
+import com.mycompany.tictactoeserver.domain.services.playerSession.PlayerSessionService;
 import com.mycompany.tictactoeserver.domain.services.statistics.StatisticsService;
 import com.mycompany.tictactoeserver.domain.utils.callbacks.PlayerHandlerCallback;
 import com.mycompany.tictactoeserver.domain.utils.callbacks.VoidCallback;
@@ -20,6 +19,7 @@ import java.net.Socket;
 import java.net.SocketException;
 import java.util.List;
 import java.util.Vector;
+
 public class GameServerManager {
 
     private final Vector<PlayerConnectionHandler> players = new Vector<>();
@@ -55,13 +55,14 @@ public class GameServerManager {
         synchronized (lock) {
             for (PlayerConnectionHandler player : players) {
                 if (player.getPlayer() != null
-                        &&player.getPlayer().getId().equals(playerId)) {
+                        && player.getPlayer().getId().equals(playerId)) {
                     return player;
                 }
             }
         }
         return null;
     }
+
     public Vector<Player> getAvailablePlayerData() {
         Vector<Player> available = new Vector<>();
         synchronized (lock) {
@@ -76,37 +77,37 @@ public class GameServerManager {
 
     public Message getLeaderboardMessage() {
         StatisticsService statsService = new StatisticsService();
-    
+
         List<PlayerEntity> topPlayersList = statsService.getLeaderboard();
-    
-    Vector<PlayerEntity> leaderboardVector = new Vector<>(topPlayersList);
 
-    AvailablePlayersInfo info = new AvailablePlayersInfo(leaderboardVector, null, null);
-    
-    return Message.createMessage(MessageType.RESPONSE, Action.GET_LEADERBOARD, info);
-}
+        Vector<PlayerEntity> leaderboardVector = new Vector<>(topPlayersList);
 
-public void broadcastLeaderboard() {
-    Message msg = getLeaderboardMessage();
-    String jsonMsg = gson.toJson(msg);
-    
-    synchronized (lock) {
-        for (PlayerConnectionHandler player : players) {
-            try {
-                if (player.getPlayer() != null) { 
-                    player.sendMessageToPlayer(jsonMsg);
+        AvailablePlayersInfo info = new AvailablePlayersInfo(leaderboardVector, null, null);
+
+        return Message.createMessage(MessageType.RESPONSE, Action.GET_LEADERBOARD, info);
+    }
+
+    public void broadcastLeaderboard() {
+        Message msg = getLeaderboardMessage();
+        String jsonMsg = gson.toJson(msg);
+
+        synchronized (lock) {
+            for (PlayerConnectionHandler player : players) {
+                try {
+                    if (player.getPlayer() != null) {
+                        player.sendMessageToPlayer(jsonMsg);
+                    }
+                } catch (Exception e) {
+                    System.out.println("Error broadcasting leaderboard: " + e.getMessage());
                 }
-            } catch (Exception e) {
-                System.out.println("Error broadcasting leaderboard: " + e.getMessage());
             }
         }
     }
-}
 
-public Message getAvailablePlayersMessage(PlayerConnectionHandler requester) {
-    Vector<PlayerEntity> online = new Vector<>();
-    Vector<PlayerEntity> inGame = new Vector<>();
-    Vector<PlayerEntity> pending = new Vector<>();
+    public Message getAvailablePlayersMessage(PlayerConnectionHandler requester) {
+        Vector<PlayerEntity> online = new Vector<>();
+        Vector<PlayerEntity> inGame = new Vector<>();
+        Vector<PlayerEntity> pending = new Vector<>();
 
         synchronized (lock) {
             for (PlayerConnectionHandler handler : players) {
@@ -115,7 +116,7 @@ public Message getAvailablePlayersMessage(PlayerConnectionHandler requester) {
                 }
 
                 if (requester.getPlayer() != null
-                        &&handler.getPlayer().getId().equals(requester.getPlayer().getId())) {
+                        && handler.getPlayer().getId().equals(requester.getPlayer().getId())) {
                     continue;
                 }
                 PlayerEntity player = new PlayerEntity(handler.getPlayer().getId(), handler.getPlayer().getUsername(), handler.getPlayer().getScore());
@@ -134,7 +135,7 @@ public Message getAvailablePlayersMessage(PlayerConnectionHandler requester) {
         AvailablePlayersInfo info = new AvailablePlayersInfo(online, inGame, pending);
         return Message.createMessage(MessageType.RESPONSE, Action.GET_AVAILABLE_PLAYERS, info);
 
-}
+    }
 
     public void start() {
         synchronized (lock) {
@@ -142,6 +143,7 @@ public Message getAvailablePlayersMessage(PlayerConnectionHandler requester) {
             runnable.toggleRunning();
         }
     }
+
     public void stop() {
         System.out.println("Stopping GameServerManager");
         runnable.toggleRunning();
@@ -157,7 +159,7 @@ public Message getAvailablePlayersMessage(PlayerConnectionHandler requester) {
         }
     }
 
-    public void terminate(){
+    public void terminate() {
         stop();
         thread.interrupt();
     }
@@ -175,7 +177,17 @@ public Message getAvailablePlayersMessage(PlayerConnectionHandler requester) {
                     }
                 }
             }
+        } 
+    }
+
+    public java.util.Vector<PlayerConnectionHandler> getAllPlayers() {
+        
+        synchronized (lock) { 
+            
+            return new java.util.Vector<>(players);
+            
         }
+        
     }
 
     public void broadcastMessage(String message) throws PlayerSendMessageException {
@@ -195,8 +207,8 @@ public Message getAvailablePlayersMessage(PlayerConnectionHandler requester) {
     public void onReceiveMessage(String message, PlayerConnectionHandler sender) {
         try {
             MessageRouter router = MessageRouter.getInstance();
-            System.out.println("testingggggggggg");
-            router.navigateMessage(message, sender);
+            
+                        router.navigateMessage(message, sender);
         } catch (PlayerSendMessageException ex) {
             System.getLogger(GameServerManager.class.getName()).log(System.Logger.Level.ERROR, (String) null, ex);
         }
@@ -212,9 +224,8 @@ public Message getAvailablePlayersMessage(PlayerConnectionHandler requester) {
     public void removePlayer(PlayerConnectionHandler player) {
         GameManager.getInstance().handlePlayerDisconnect(player);
         synchronized (lock) {
-            
-            if(player.getPlayer() != null)
-            {
+
+            if (player.getPlayer() != null) {
                 System.out.println("Player is not nulll-----------------------------------------------");
                 String playerID = player.getPlayer().getId();
                 playerSessionService.endPlayerSession(playerID);
@@ -282,7 +293,7 @@ public Message getAvailablePlayersMessage(PlayerConnectionHandler requester) {
         synchronized (lock) {
             for (PlayerConnectionHandler player : players) {
 
-                if (player.getPlayer()!=null&&username.equals(player.getPlayer().getUsername())) {
+                if (player.getPlayer() != null && username.equals(player.getPlayer().getUsername())) {
                     return true;
                 }
             }
