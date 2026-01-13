@@ -1,0 +1,219 @@
+.monitoring-scroll {
+    -fx-background-color: #0a0e1a;
+}
+
+.monitoring-scroll .viewport {
+    -fx-background-color: #0a0e1a;
+}
+
+.monitoring-panel {
+    -fx-background-color: #0a0e1a;
+    -fx-spacing: 20;
+}
+
+.server-overview-card {
+    -fx-background-color: #111827;
+    -fx-background-radius: 14px;
+    -fx-padding: 24px;
+    -fx-border-color: rgba(6, 182, 212, 0.2);
+    -fx-border-width: 1px;
+    -fx-border-radius: 14px;
+    -fx-effect: dropshadow(gaussian, rgba(6, 182, 212, 0.1), 10, 0, 0, 0);
+}
+
+.server-overview-card .card-icon {
+    -fx-fill: #06b6d4;
+    -fx-icon-color: #06b6d4;
+}
+
+.overview-grid {
+    -fx-hgap: 15;
+    -fx-vgap: 15;
+}
+
+.stat-tile {
+    -fx-background-color: #1a2332;
+    -fx-background-radius: 10px;
+    -fx-padding: 20 24 20 24;
+    -fx-border-width: 1px;
+    -fx-border-radius: 10px;
+    -fx-spacing: 12;
+    -fx-min-height: 120;
+}
+
+.stat-header {
+    -fx-spacing: 8;
+    -fx-alignment: center-left;
+}
+
+.stat-label {
+    -fx-font-size: 12px;
+    -fx-font-weight: 600;
+    -fx-text-fill: #9ca3af;
+}
+
+.stat-value {
+    -fx-font-size: 42px;
+    -fx-font-weight: 700;
+    -fx-text-fill: #f9fafb;
+}
+
+.stat-connected {
+    -fx-border-color: #06b6d4;
+    -fx-background-color: #1a2332;
+}
+
+.stat-connected .font-icon {
+    -fx-fill: #06b6d4;
+    -fx-icon-color: #06b6d4;
+}
+
+.stat-connected .stat-value {
+    -fx-text-fill: #06b6d4;
+}
+
+.stat-online {
+    -fx-border-color: #10b981;
+    -fx-background-color: #1a2332;
+}
+
+.stat-online .font-icon {
+    -fx-fill: #10b981;
+    -fx-icon-color: #10b981;
+}
+
+.stat-online .stat-value {
+    -fx-text-fill: #10b981;
+}
+
+.stat-offline {
+    -fx-border-color: #6b7280;
+    -fx-background-color: #1a2332;
+}
+
+.stat-offline .font-icon {
+    -fx-fill: #6b7280;
+    -fx-icon-color: #6b7280;
+}
+
+.stat-offline .stat-value {
+    -fx-text-fill: #6b7280;
+}
+
+.stat-ingame {
+    -fx-border-color: #8b5cf6;
+    -fx-background-color: #1a2332;
+}
+
+.stat-ingame .font-icon {
+    -fx-fill: #8b5cf6;
+    -fx-icon-color: #8b5cf6;
+}
+
+.stat-ingame .stat-value {
+    -fx-text-fill: #8b5cf6;
+}
+
+* {
+    -chart-accent: #06b6d4;
+    -chart-text-muted: #9ca3af;
+    -chart-grid-color: #374151;
+}
+
+.chart-card {
+    -fx-min-height: 350px;
+}
+
+.range-btn {
+    -fx-min-width: 45px;
+    -fx-padding: 5 12 5 12;
+}
+
+.range-btn:selected,
+.range-btn-active {
+    -fx-background-color: -chart-accent;
+    -fx-text-fill: white;
+    -fx-border-color: -chart-accent;
+}
+
+.chart-pane {
+    -fx-padding: 10 0 0 0;
+}
+
+.chart {
+    -fx-padding: 0;
+}
+
+.chart-plot-background {
+    -fx-background-color: transparent;
+}
+
+.chart-series-line {
+    -fx-stroke: -chart-accent;
+    -fx-stroke-width: 2.5px;
+    -fx-effect: dropshadow(three-pass-box, rgba(6, 182, 212, 0.4), 10, 0, 0, 2);
+}
+
+.chart-line-symbol {
+    -fx-background-color: transparent;
+    -fx-background-radius: 0;
+    -fx-padding: 0;
+}
+
+.axis {
+    -fx-tick-label-fill: -chart-text-muted;
+    -fx-font-size: 11px;
+}
+
+.axis:left {
+    -fx-border-color: transparent;
+}
+
+.axis:bottom {
+    -fx-border-color: transparent;
+}
+
+.axis-minor-tick-mark,
+.axis-tick-mark {
+    -fx-stroke: transparent;
+}
+
+.chart-vertical-grid-lines {
+    -fx-stroke: transparent;
+}
+
+.chart-horizontal-grid-lines {
+    -fx-stroke: -chart-grid-color;
+    -fx-stroke-dash-array: 3 5;
+    -fx-stroke-width: 1px;
+    -fx-opacity: 0.3;
+}
+
+.chart-content {
+    -fx-padding: 10px;
+}
+
+.stat-tile:hover {
+    -fx-cursor: hand;
+    -fx-background-color: #1f2937;
+}
+
+.stat-connected:hover {
+    -fx-border-color: #06b6d4;
+    -fx-effect: dropshadow(gaussian, rgba(6, 182, 212, 0.3), 15, 0, 0, 0);
+}
+
+.stat-online:hover {
+    -fx-border-color: #10b981;
+    -fx-effect: dropshadow(gaussian, rgba(16, 185, 129, 0.3), 15, 0, 0, 0);
+}
+
+.stat-offline:hover {
+    -fx-border-color: #6b7280;
+    -fx-effect: dropshadow(gaussian, rgba(107, 114, 128, 0.3), 15, 0, 0, 0);
+}
+
+.stat-ingame:hover {
+    -fx-border-color: #8b5cf6;
+    -fx-effect: dropshadow(gaussian, rgba(139, 92, 246, 0.3), 15, 0, 0, 0);
+}

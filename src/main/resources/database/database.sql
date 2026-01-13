@@ -9,8 +9,8 @@ create table Player
 create table Activity (
     id varchar(36) primary key,
     player_id varchar(36),
-    start_time timestamp,
-    end_time timestamp,
+    start_date timestamp,
+    end_date timestamp,
     constraint fk_activity_player foreign key (player_id)
         references player (id)
 );

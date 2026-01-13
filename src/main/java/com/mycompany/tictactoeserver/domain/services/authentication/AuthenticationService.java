@@ -93,8 +93,6 @@ public class AuthenticationService {
                 return response;
             }
 
-
-            GameServerManager.getInstance().broadcastPlayerList();
             String hashedPassword = ServerSecurityManager.hashText(credential.getPassword());
             if (!hashedPassword.equals(player.getPassword())) {
 
@@ -112,7 +110,8 @@ public class AuthenticationService {
             if (clientSession != null) {
                 clientSession.setPlayer(player);       
                 clientSession.setStatus(PlayerStatus.ONLINE);
-			 GameServerManager.getInstance().broadcastPlayerList();
+                GameServerManager.getInstance().broadcastPlayerList();
+                GameServerManager.getInstance().runCallbacks();
 
             }
 

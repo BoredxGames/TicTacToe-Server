@@ -87,6 +87,7 @@ public class GameManager {
             requester.setStatus(PlayerStatus.PENDING);
             target.setStatus(PlayerStatus.PENDING);
             GameServerManager.getInstance().broadcastPlayerList();
+            GameServerManager.getInstance().runCallbacks();
 
 
             synchronized (lock) {
@@ -129,6 +130,7 @@ target.sendMessageToPlayer(gson.toJson(eventToTarget));
                 requester.setStatus(PlayerStatus.ONLINE);
                 responder.setStatus(PlayerStatus.ONLINE);
                 GameServerManager.getInstance().broadcastPlayerList();
+                GameServerManager.getInstance().runCallbacks();
 
               Message refusalMsg = Message.createMessage(MessageType.RESPONSE, Action.GAME_RESPONSE, requestInfo);
            
@@ -153,6 +155,7 @@ target.sendMessageToPlayer(gson.toJson(eventToTarget));
             p1.setStatus(PlayerStatus.IN_GAME);
             p2.setStatus(PlayerStatus.IN_GAME);
             GameServerManager.getInstance().broadcastPlayerList();
+            GameServerManager.getInstance().runCallbacks();
             synchronized (lock) {
                 activeRooms.add(room);
             }

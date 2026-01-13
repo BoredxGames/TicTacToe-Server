@@ -3,7 +3,7 @@ import java.util.UUID;
 import java.time.LocalDateTime;
 
 public class Session {
-   private final String id;
+    private String id;
     private String playerId;
     private LocalDateTime startTime;
     private LocalDateTime endTime;
@@ -20,6 +20,9 @@ public class Session {
     }
     public String getId() {
         return id;
+    }
+    public void setId(String id) {
+        this.id = id;
     }
 
     public String getPlayerId() {
