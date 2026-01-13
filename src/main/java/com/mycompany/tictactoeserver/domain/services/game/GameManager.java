@@ -1,8 +1,10 @@
 package com.mycompany.tictactoeserver.domain.services.game;
+
 import com.google.gson.Gson;
 import com.mycompany.tictactoeserver.domain.entity.PlayerStatus;
 import com.mycompany.tictactoeserver.domain.server.GameServerManager;
 import com.mycompany.tictactoeserver.domain.server.PlayerConnectionHandler;
+import com.mycompany.tictactoeserver.domain.services.authentication.AuthenticationService;
 import com.mycompany.tictactoeserver.domain.services.communication.*;
 import com.mycompany.tictactoeserver.domain.utils.exception.ExceptionHandlerMiddleware;
 import com.mycompany.tictactoeserver.domain.utils.exception.ServerInterruptException;
@@ -17,11 +19,13 @@ public class GameManager {
     private final Object lock = new Object();
     private Gson gson = new Gson();
 
-
-    private GameManager() {}
+    private GameManager() {
+    }
 
     public static GameManager getInstance() {
-        if (instance == null) instance = new GameManager();
+        if (instance == null) {
+            instance = new GameManager();
+        }
         return instance;
     }
 
@@ -32,7 +36,9 @@ public class GameManager {
     private boolean hasOutgoingPending(PlayerConnectionHandler requester) {
         synchronized (lock) {
             for (GameRequest req : pendingRequests) {
-                if (req.requester == requester) return true;
+                if (req.requester == requester) {
+                    return true;
+                }
             }
         }
         return false;
@@ -41,16 +47,20 @@ public class GameManager {
     private GameRequest findPendingByTarget(PlayerConnectionHandler target) {
         synchronized (lock) {
             for (GameRequest req : pendingRequests) {
-                if (req.target == target) return req;
+                if (req.target == target) {
+                    return req;
+                }
             }
         }
         return null;
     }
-    
+
     private GameRoom getRoomById(String roomId) {
         synchronized (lock) {
             for (GameRoom room : activeRooms) {
-                if (room.getRoomId().equals(roomId)) return room;
+                if (room.getRoomId().equals(roomId)) {
+                    return room;
+                }
             }
         }
         return null;
@@ -58,12 +68,15 @@ public class GameManager {
 
     private PlayerConnectionHandler getPlayerById(String playerId) {
         for (GameRoom room : activeRooms) {
-            if (room.getPlayer1().getPlayer().getId().equals(playerId)) return room.getPlayer1();
-            if (room.getPlayer2().getPlayer().getId().equals(playerId)) return room.getPlayer2();
+            if (room.getPlayer1().getPlayer().getId().equals(playerId)) {
+                return room.getPlayer1();
+            }
+            if (room.getPlayer2().getPlayer().getId().equals(playerId)) {
+                return room.getPlayer2();
+            }
         }
         return null;
     }
-
 
     public Message requestGame(GameRequestInfo requestInfo, PlayerConnectionHandler requester, PlayerConnectionHandler target) {
         try {
@@ -83,20 +96,17 @@ public class GameManager {
                 return Message.createMessage(MessageType.ERROR, Action.TARGET_HAS_PENDING_REQUEST, requestInfo);
             }
 
-     
             requester.setStatus(PlayerStatus.PENDING);
             target.setStatus(PlayerStatus.PENDING);
             GameServerManager.getInstance().broadcastPlayerList();
             GameServerManager.getInstance().runCallbacks();
 
-
             synchronized (lock) {
                 pendingRequests.add(new GameRequest(requester, target));
             }
-            Message eventToTarget = Message.createMessage( MessageType.EVENT, Action.REQUEST_GAME, requestInfo);
-target.sendMessageToPlayer(gson.toJson(eventToTarget));
+            Message eventToTarget = Message.createMessage(MessageType.EVENT, Action.REQUEST_GAME, requestInfo);
+            target.sendMessageToPlayer(gson.toJson(eventToTarget));
 
- 
             return Message.createMessage(MessageType.RESPONSE, Action.REQUEST_GAME, requestInfo);
 
         } catch (Exception ex) {
@@ -117,7 +127,9 @@ target.sendMessageToPlayer(gson.toJson(eventToTarget));
                         break;
                     }
                 }
-                if (found != null) pendingRequests.remove(found);
+                if (found != null) {
+                    pendingRequests.remove(found);
+                }
             }
 
             if (found == null) {
@@ -132,11 +144,11 @@ target.sendMessageToPlayer(gson.toJson(eventToTarget));
                 GameServerManager.getInstance().broadcastPlayerList();
                 GameServerManager.getInstance().runCallbacks();
 
-              Message refusalMsg = Message.createMessage(MessageType.RESPONSE, Action.GAME_RESPONSE, requestInfo);
-           
-            requester.sendMessageToPlayer(gson.toJson(refusalMsg)); 
+                Message refusalMsg = Message.createMessage(MessageType.RESPONSE, Action.GAME_RESPONSE, requestInfo);
 
-            return null;
+                requester.sendMessageToPlayer(gson.toJson(refusalMsg));
+
+                return null;
             }
 
             return startGame(requester, responder);
@@ -196,7 +208,6 @@ target.sendMessageToPlayer(gson.toJson(eventToTarget));
         }
     }
 
-
     public Message forwardMove(MoveInfo moveInfo) {
         try {
             GameRoom room = getRoomById(moveInfo.getRoomId());
@@ -221,74 +232,116 @@ target.sendMessageToPlayer(gson.toJson(eventToTarget));
         }
     }
 
-public void handlePlayerDisconnect(PlayerConnectionHandler disconnectedPlayer) {
-    if (disconnectedPlayer == null) return;
+    public void handlePlayerDisconnect(PlayerConnectionHandler disconnectedPlayer) {
+        if (disconnectedPlayer == null) {
+            return;
+        }
 
-    System.out.println("Handling disconnect for: " + 
-        (disconnectedPlayer.getPlayer() != null ? disconnectedPlayer.getPlayer().getUsername() : "Unknown"));
+        System.out.println("Handling disconnect for: "
+                + (disconnectedPlayer.getPlayer() != null ? disconnectedPlayer.getPlayer().getUsername() : "Unknown"));
 
-    
-    GameRequest foundRequest = null;
-    synchronized (lock) {
-        for (GameRequest req : pendingRequests) {
-            if (req.requester.equals(disconnectedPlayer) || req.target.equals(disconnectedPlayer)) {
-                foundRequest = req;
-                break;
+        GameRequest foundRequest = null;
+        synchronized (lock) {
+            for (GameRequest req : pendingRequests) {
+                if (req.requester.equals(disconnectedPlayer) || req.target.equals(disconnectedPlayer)) {
+                    foundRequest = req;
+                    break;
+                }
+            }
+            if (foundRequest != null) {
+                pendingRequests.remove(foundRequest);
             }
         }
+
         if (foundRequest != null) {
-            pendingRequests.remove(foundRequest);
-        }
-    }
+            PlayerConnectionHandler opponent = (foundRequest.requester.equals(disconnectedPlayer))
+                    ? foundRequest.target
+                    : foundRequest.requester;
 
-    if (foundRequest != null) {
-        PlayerConnectionHandler opponent = (foundRequest.requester.equals(disconnectedPlayer)) 
-                                         ? foundRequest.target 
-                                         : foundRequest.requester;
-        
-        opponent.setStatus(PlayerStatus.ONLINE);
-        GameServerManager.getInstance().broadcastPlayerList();
+            opponent.setStatus(PlayerStatus.ONLINE);
+            GameServerManager.getInstance().broadcastPlayerList();
 
-        try {
-       
-            Message msg = Message.createMessage(MessageType.ERROR, Action.INVALID_OPPONENT, null);
-            opponent.sendMessageToPlayer(gson.toJson(msg));
-        } catch (Exception e) {
-            System.out.println("Failed to notify opponent of pending disconnect: " + e.getMessage());
-        }
-    }
+            try {
 
-  
-    GameRoom foundRoom = null;
-    synchronized (lock) {
-        for (GameRoom room : activeRooms) {
-            if (room.getPlayer1().equals(disconnectedPlayer) || room.getPlayer2().equals(disconnectedPlayer)) {
-                foundRoom = room;
-                break;
+                Message msg = Message.createMessage(MessageType.ERROR, Action.INVALID_OPPONENT, null);
+                opponent.sendMessageToPlayer(gson.toJson(msg));
+            } catch (Exception e) {
+                System.out.println("Failed to notify opponent of pending disconnect: " + e.getMessage());
             }
         }
+
+        GameRoom foundRoom = null;
+        synchronized (lock) {
+            for (GameRoom room : activeRooms) {
+                if (room.getPlayer1().equals(disconnectedPlayer) || room.getPlayer2().equals(disconnectedPlayer)) {
+                    foundRoom = room;
+                    break;
+                }
+            }
+            if (foundRoom != null) {
+                activeRooms.remove(foundRoom);
+            }
+        }
+
         if (foundRoom != null) {
-            activeRooms.remove(foundRoom);
+            PlayerConnectionHandler survivor = (foundRoom.getPlayer1().equals(disconnectedPlayer))
+                    ? foundRoom.getPlayer2()
+                    : foundRoom.getPlayer1();
+
+            survivor.setStatus(PlayerStatus.ONLINE);
+            GameServerManager.getInstance().broadcastPlayerList();
+
+            try {
+                Message msg = Message.createMessage(MessageType.ERROR, Action.INVALID_OPPONENT, null);
+                survivor.sendMessageToPlayer(gson.toJson(msg));
+            } catch (Exception e) {
+                System.out.println("Failed to notify survivor of game disconnect: " + e.getMessage());
+            }
         }
     }
 
-    if (foundRoom != null) {
-        PlayerConnectionHandler survivor = (foundRoom.getPlayer1().equals(disconnectedPlayer)) 
-                                         ? foundRoom.getPlayer2() 
-                                         : foundRoom.getPlayer1();
-
-        survivor.setStatus(PlayerStatus.ONLINE);
-        GameServerManager.getInstance().broadcastPlayerList();
-
+    public Message handleGameEnd(GameEndInfo endInfo, PlayerConnectionHandler sender) {
         try {
-            Message msg = Message.createMessage(MessageType.ERROR, Action.INVALID_OPPONENT, null);
-            survivor.sendMessageToPlayer(gson.toJson(msg));
-        } catch (Exception e) {
-            System.out.println("Failed to notify survivor of game disconnect: " + e.getMessage());
+            GameRoom room = getRoomById(endInfo.getRoomId());
+
+            if (room == null) {
+                return Message.createMessage(MessageType.ERROR, Action.ROOM_NOT_FOUND, endInfo);
+            }
+
+            PlayerConnectionHandler opponent = room.getOpponent(sender);
+
+            if (endInfo.getWinnerId() != null) {
+                System.out.println("Winner: " + endInfo.getWinnerId());
+
+                AuthenticationService.getInstance().addScore(endInfo.getWinnerId(), 1);
+
+            } else {
+                System.out.println("Game Draw: No points awarded.");
+            }
+
+            room.getPlayer1().setStatus(PlayerStatus.ONLINE);
+            room.getPlayer2().setStatus(PlayerStatus.ONLINE);
+
+            if (opponent != null) {
+                Message endMsg = Message.createMessage(MessageType.EVENT, Action.GAME_END, endInfo);
+                opponent.sendMessageToPlayer(gson.toJson(endMsg));
+            }
+
+            // Cleanup Room
+            synchronized (lock) {
+                activeRooms.remove(room);
+            }
+
+            GameServerManager.getInstance().broadcastPlayerList();
+            GameServerManager.getInstance().broadcastLeaderboard();
+
+            return Message.createMessage(MessageType.RESPONSE, Action.GAME_END, endInfo);
+
+        } catch (Exception ex) {
+            ExceptionHandlerMiddleware.getInstance()
+                    .handleException(new ServerInterruptException(ex.getStackTrace()));
+            return Message.createMessage(MessageType.ERROR, Action.INTERNAL_SERVER_ERROR, endInfo);
         }
     }
-}
 
- 
-   
 }

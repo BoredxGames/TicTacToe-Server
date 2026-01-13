@@ -63,7 +63,7 @@ public class AuthenticationService {
             playerDao.insert(newPlayer);
 
             AuthResponseEntity responseEntity = new AuthResponseEntity(newPlayer);
-            response = Message.createMessage(MessageType.RESPONSE, Action.REGISTERATION_SUCCESS, responseEntity);       
+            response = Message.createMessage(MessageType.RESPONSE, Action.REGISTERATION_SUCCESS, responseEntity);
 
         } catch (HashingException ex) {
             ServerInterruptException customException = new ServerInterruptException(ex.getStackTrace());
@@ -71,10 +71,10 @@ public class AuthenticationService {
 
             response = Message.createMessage(MessageType.ERROR, Action.INTERNAL_SERVER_ERROR, credential);
         } catch (SQLException ex) {
-             response = Message.createMessage(MessageType.ERROR, Action.INTERNAL_SERVER_ERROR, credential);
-                return response;
+            response = Message.createMessage(MessageType.ERROR, Action.INTERNAL_SERVER_ERROR, credential);
+            return response;
         }
-        
+
         return response;
     }
 
@@ -108,14 +108,13 @@ public class AuthenticationService {
             AuthResponseEntity responseEntity = new AuthResponseEntity(player);
             response = Message.createMessage(MessageType.RESPONSE, Action.LOGIN_SUCCESS, responseEntity);
             if (clientSession != null) {
-                clientSession.setPlayer(player);       
+                clientSession.setPlayer(player);
                 clientSession.setStatus(PlayerStatus.ONLINE);
                 GameServerManager.getInstance().broadcastPlayerList();
                 GameServerManager.getInstance().runCallbacks();
 
             }
 
-            
         } catch (HashingException ex) {
             ServerInterruptException customException = new ServerInterruptException(ex.getStackTrace());
             ExceptionHandlerMiddleware.getInstance().handleException(customException);
@@ -128,4 +127,18 @@ public class AuthenticationService {
         }
         return response;
     }
+
+    public void addScore(String playerId, int points) {
+        try {
+            Player player = playerDao.findById(playerId);
+            if (player != null) {
+                int newScore = player.getScore() + points;
+                player.setScore(newScore);
+                playerDao.update(player);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
 }
