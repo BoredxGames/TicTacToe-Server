@@ -5,6 +5,7 @@ import com.mycompany.tictactoeserver.domain.entity.AuthRequestEntity;
 import com.mycompany.tictactoeserver.domain.server.GameServerManager;
 import com.mycompany.tictactoeserver.domain.server.PlayerConnectionHandler;
 import com.mycompany.tictactoeserver.domain.services.authentication.AuthenticationService;
+import com.mycompany.tictactoeserver.domain.services.game.GameEndInfo;
 import com.mycompany.tictactoeserver.domain.services.game.GameManager;
 import com.mycompany.tictactoeserver.domain.services.game.GameRequestInfo;
 import com.mycompany.tictactoeserver.domain.services.game.GameResponseInfo;
@@ -127,6 +128,11 @@ if (response != null) {
             MoveInfo moveInfo = gson.fromJson(msg.getData(), MoveInfo.class);
             response = GameManager.getInstance().forwardMove(moveInfo);
             sender.sendMessageToPlayer(gson.toJson(response));
+        }
+         
+        case GAME_END->{
+            GameEndInfo Info = gson.fromJson(msg.getData(), GameEndInfo.class);
+            GameManager.getInstance().handleGameEnd(Info,sender);
         }
 
         default -> {
