@@ -327,7 +327,6 @@ public class GameManager {
                 opponent.sendMessageToPlayer(gson.toJson(endMsg));
             }
 
-            // Cleanup Room
             synchronized (lock) {
                 activeRooms.remove(room);
             }
