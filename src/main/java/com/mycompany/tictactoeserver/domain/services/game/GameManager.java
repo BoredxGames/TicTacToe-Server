@@ -222,7 +222,6 @@ public class GameManager {
             }
             Message msg = Message.createMessage(MessageType.RESPONSE, Action.SEND_GAME_UPDATE, moveInfo);
             opponent.sendMessageToPlayer(gson.toJson(msg));
-
             return Message.createMessage(MessageType.RESPONSE, Action.SEND_GAME_UPDATE, moveInfo);
 
         } catch (Exception ex) {
@@ -260,6 +259,8 @@ public class GameManager {
 
             opponent.setStatus(PlayerStatus.ONLINE);
             GameServerManager.getInstance().broadcastPlayerList();
+
+            GameServerManager.getInstance().runCallbacks();
 
             try {
 
@@ -333,6 +334,9 @@ public class GameManager {
 
             GameServerManager.getInstance().broadcastPlayerList();
             GameServerManager.getInstance().broadcastLeaderboard();
+            GameServerManager.getInstance().runCallbacks();
+
+
 
             return Message.createMessage(MessageType.RESPONSE, Action.GAME_END, endInfo);
 

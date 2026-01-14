@@ -4,6 +4,8 @@
  */
 package com.mycompany.tictactoeserver.domain.services.game;
 
+import com.google.gson.Gson;
+
 /**
  *
  * @author mahmoud
@@ -32,4 +34,15 @@ public class MoveInfo {
         return move;
     }
     
+    public static MoveInfo createMoveInfo(String roomId, String playerId , Object data)
+    {
+        return new MoveInfo(roomId, playerId, toJson(data));
+    }
+
+    static private String toJson(Object data)
+    {
+        Gson gson = new Gson();
+        return  gson.toJson(data);
+
+    }
 }

@@ -126,8 +126,7 @@ if (response != null) {
 
         case SEND_GAME_UPDATE -> {
             MoveInfo moveInfo = gson.fromJson(msg.getData(), MoveInfo.class);
-            response = GameManager.getInstance().forwardMove(moveInfo);
-            sender.sendMessageToPlayer(gson.toJson(response));
+            GameManager.getInstance().forwardMove(moveInfo);
         }
          
         case GAME_END->{
